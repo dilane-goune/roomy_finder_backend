@@ -1,0 +1,55 @@
+import { defaultMessaging } from "../functions/firebase";
+import nullFilterHelper from "../functions/null_filter_helper";
+
+export default class FCMHelper {
+  static async send(fcmToken: string, data: { [key: string]: string }) {
+    try {
+      await defaultMessaging.send({ token: fcmToken, data: data });
+      // console.log("Successfully sent message:", response);
+    } catch (error) {
+      console.log("Error sending message:", error);
+    }
+  }
+
+  static async sendTopic(topic: string, data: { [key: string]: string }) {
+    try {
+      await defaultMessaging.send({ topic: topic, data: data });
+      // console.log("Successfully sent message:", response);
+    } catch (error) {
+      console.log("Error sending topic message:", error);
+    }
+  }
+
+  static async sendMulticast(
+    fcmTokens: (string | undefined)[],
+    data: { [key: string]: string }
+  ) {
+    const tokens = fcmTokens.filter(nullFilterHelper);
+    try {
+      await defaultMessaging.sendMulticast({ tokens, data: data });
+      // console.log(response.successCount + " messages were sent successfully");
+    } catch (error) {
+      console.log("Error sending message:", error);
+    }
+  }
+  static async sendNofication(
+    event: NotificationEvent,
+    fcmToken: string,
+    data: { [key: string]: string }
+  ) {
+    try {
+      await defaultMessaging.send({
+        token: fcmToken,
+        data: { ...data, event },
+      });
+      // console.log("Successfully sent message:", response);
+    } catch (error) {
+      console.log("Error sending message:", error);
+    }
+  }
+}
+
+export type NotificationEvent =
+  | "new-booking"
+  | "booking-offered"
+  | "booking-declined";
