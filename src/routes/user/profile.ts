@@ -6,12 +6,27 @@ import UserModel from "../../models/user/schema";
 const profileRouter = Router();
 export default profileRouter;
 
-profileRouter.delete("/remove-pp", authentication, async (req, res) => {
-  try {
-    const userId = (req as CustomRequest).userId;
-    UserModel.updateOne({ _id: userId }, { $set: { pp: null } });
+profileRouter.delete(
+  "/remove-profile-picture",
+  authentication,
+  async (req, res) => {
+    try {
+      const userId = (req as CustomRequest).userId;
+      UserModel.updateOne({ _id: userId }, { $set: { pp: null } });
 
-    res.sendStatus(204);
+      res.sendStatus(204);
+    } catch (error: any) {
+      console.log(error);
+      res.sendStatus(500);
+    }
+  }
+);
+profileRouter.get("/profile-picture", async (req, res) => {
+  try {
+    const user = await UserModel.findOne({ _id: req.query.userId }, { pp: 1 });
+
+    if (!user) return res.sendStatus(404);
+    res.json({ profilePicture: user.profilePicture });
   } catch (error: any) {
     console.log(error);
     res.sendStatus(500);

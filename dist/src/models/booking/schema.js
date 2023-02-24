@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const schema = new mongoose_1.Schema({
-    type: { type: String, required: true, enum: ["PROPERTY", "ROOMMATE"] },
-    landlord: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "User" },
+    adType: { type: String, required: true, enum: ["PROPERTY", "ROOMMATE"] },
+    poster: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "User" },
     client: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "User" },
     ad: {
         type: mongoose_1.Schema.Types.ObjectId,

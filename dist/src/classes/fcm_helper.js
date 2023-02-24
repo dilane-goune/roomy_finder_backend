@@ -41,8 +41,11 @@ class FCMHelper {
         return __awaiter(this, void 0, void 0, function* () {
             const tokens = fcmTokens.filter(null_filter_helper_1.default);
             try {
-                yield firebase_1.defaultMessaging.sendMulticast({ tokens, data: data });
-                // console.log(response.successCount + " messages were sent successfully");
+                const response = yield firebase_1.defaultMessaging.sendMulticast({
+                    tokens,
+                    data: data,
+                });
+                console.log(response.successCount + " messages were sent successfully");
             }
             catch (error) {
                 console.log("Error sending message:", error);
@@ -57,9 +60,11 @@ class FCMHelper {
                     data: Object.assign(Object.assign({}, data), { event }),
                 });
                 // console.log("Successfully sent message:", response);
+                return true;
             }
             catch (error) {
                 console.log("Error sending message:", error);
+                return false;
             }
         });
     }

@@ -84,7 +84,6 @@ propertyAdRouter.get("/available", ads_1.createQueryModifier, (req, res) => __aw
     try {
         const skip = parseInt(req.query.skip) || 0;
         const query = Object.assign({ isAvailable: true }, req.query);
-        console.log(query);
         const data = yield schema_1.default.find(query)
             .limit(100)
             .skip(skip)

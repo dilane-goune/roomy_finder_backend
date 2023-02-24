@@ -18,10 +18,14 @@ const messageRouter = (0, express_1.Router)();
 exports.default = messageRouter;
 messageRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const message = req.body.message;
         const reciverFcmToken = req.body.reciverFcmToken;
-        fcm_helper_1.default.send(reciverFcmToken, { message });
-        res.sendStatus(200);
+        const result = yield fcm_helper_1.default.sendNofication("new-message", reciverFcmToken, {
+            jsonMessage: JSON.stringify(req.body.message),
+        });
+        if (result)
+            res.sendStatus(200);
+        else
+            res.sendStatus(500);
     }
     catch (error) {
         res.sendStatus(500);

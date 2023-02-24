@@ -9,3 +9,10 @@ export function createQueryModifier(
   delete req.query.city;
   next();
 }
+export function roommateQueryModifier(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  next();
+}

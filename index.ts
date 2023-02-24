@@ -11,6 +11,7 @@ import userRouter from "./src/routes/user";
 import adsRouter from "./src/routes/ads";
 import bookingRouter from "./src/routes/booking";
 import FCMHelper from "./src/classes/fcm_helper";
+import dealRouter from "./src/routes/deals";
 
 mongoose.set("strictQuery", true);
 
@@ -36,6 +37,7 @@ app.get("/", (req, res) => res.json({ message: "Room Finder" }));
 app.use("/api/v1", userRouter);
 app.use("/api/v1/ads", adsRouter);
 app.use("/api/v1/bookings", bookingRouter);
+app.use("/api/v1/deals", dealRouter);
 
 const listenner = server.listen(PORT, ADDRESS, function () {
   return console.log(`Server running on port ${PORT}`);

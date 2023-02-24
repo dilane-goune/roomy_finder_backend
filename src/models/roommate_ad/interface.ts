@@ -5,6 +5,7 @@ export interface RoommateAd {
   id: string;
   poster: HydratedDocument<User>;
   type: "Studio" | "Appartment" | "House";
+  rentType: "Monthly" | "Weekly" | "Daily";
   isPremium: boolean;
   budget: number;
   description: string;
@@ -15,7 +16,7 @@ export interface RoommateAd {
 
   address: {
     country: string;
-    city: string;
+    // city: string;
     location: string;
     buildingName?: string;
   };

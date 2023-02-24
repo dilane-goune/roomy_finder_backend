@@ -9,6 +9,11 @@ const schema = new Schema<RoommateAd, Model<RoommateAd>, RoommateAdMethods>(
       required: true,
       enum: ["Studio", "Appartment", "House"],
     },
+    rentType: {
+      type: String,
+      required: true,
+      enum: ["Monthly", "Weekly", "Daily"],
+    },
     isPremium: { type: Boolean, default: false },
     budget: { type: Number, required: true },
     description: { type: String, required: true },
@@ -18,7 +23,7 @@ const schema = new Schema<RoommateAd, Model<RoommateAd>, RoommateAdMethods>(
 
     address: {
       country: { type: String, required: true },
-      city: { type: String, required: true },
+      // city: { type: String, required: true },
       location: { type: String, required: true },
       buildingName: { type: String },
     },

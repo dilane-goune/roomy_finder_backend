@@ -17,11 +17,23 @@ const authentication_1 = __importDefault(require("../../middlewares/authenticati
 const schema_1 = __importDefault(require("../../models/user/schema"));
 const profileRouter = (0, express_1.Router)();
 exports.default = profileRouter;
-profileRouter.delete("/remove-pp", authentication_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+profileRouter.delete("/remove-profile-picture", authentication_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.userId;
         schema_1.default.updateOne({ _id: userId }, { $set: { pp: null } });
         res.sendStatus(204);
+    }
+    catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
+}));
+profileRouter.get("/profile-picture", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield schema_1.default.findOne({ _id: req.query.userId }, { pp: 1 });
+        if (!user)
+            return res.sendStatus(404);
+        res.json({ profilePicture: user.profilePicture });
     }
     catch (error) {
         console.log(error);

@@ -7,7 +7,7 @@ export interface PropertyAd {
   type: PropertyAdSubType;
   quantity: number;
   quantityTaken: number;
-  preferedRent: "Monthly" | "Weekly" | "Daily";
+  rentType: "Monthly" | "Weekly" | "Daily";
   price: number;
   deposit: boolean;
   depositPrice?: number;

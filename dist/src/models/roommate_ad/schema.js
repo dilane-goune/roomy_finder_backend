@@ -8,6 +8,11 @@ const schema = new mongoose_1.Schema({
         required: true,
         enum: ["Studio", "Appartment", "House"],
     },
+    rentType: {
+        type: String,
+        required: true,
+        enum: ["Monthly", "Weekly", "Daily"],
+    },
     isPremium: { type: Boolean, default: false },
     budget: { type: Number, required: true },
     description: { type: String, required: true },
@@ -16,7 +21,7 @@ const schema = new mongoose_1.Schema({
     isAvailable: { type: Boolean, default: true },
     address: {
         country: { type: String, required: true },
-        city: { type: String, required: true },
+        // city: { type: String, required: true },
         location: { type: String, required: true },
         buildingName: { type: String },
     },

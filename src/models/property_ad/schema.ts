@@ -7,7 +7,7 @@ const schema = new Schema<PropertyAd, Model<PropertyAd>, PropertyAdMethods>(
     type: { type: String, required: true },
     quantity: { type: Number, required: true },
     quantityTaken: { type: Number, default: 0 },
-    preferedRent: { type: String, required: true },
+    rentType: { type: String, required: true },
     price: { type: Number, required: true },
     deposit: { type: Boolean, default: false },
     depositPrice: { type: String },

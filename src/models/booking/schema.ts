@@ -3,8 +3,8 @@ import { Booking, BookingMethods } from "./interface";
 
 const schema = new Schema<Booking, Model<Booking>, BookingMethods>(
   {
-    type: { type: String, required: true, enum: ["PROPERTY", "ROOMMATE"] },
-    landlord: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+    adType: { type: String, required: true, enum: ["PROPERTY", "ROOMMATE"] },
+    poster: { type: Schema.Types.ObjectId, required: true, ref: "User" },
     client: { type: Schema.Types.ObjectId, required: true, ref: "User" },
     ad: {
       type: Schema.Types.ObjectId,

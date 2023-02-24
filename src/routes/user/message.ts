@@ -6,12 +6,18 @@ export default messageRouter;
 
 messageRouter.post("/", async (req, res) => {
   try {
-    const message = req.body.message;
     const reciverFcmToken = req.body.reciverFcmToken;
 
-    FCMHelper.send(reciverFcmToken, { message });
+    const result = await FCMHelper.sendNofication(
+      "new-message",
+      reciverFcmToken,
+      {
+        jsonMessage: JSON.stringify(req.body.message),
+      }
+    );
 
-    res.sendStatus(200);
+    if (result) res.sendStatus(200);
+    else res.sendStatus(500);
   } catch (error) {
     res.sendStatus(500);
     console.error(error);

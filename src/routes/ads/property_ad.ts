@@ -83,8 +83,6 @@ propertyAdRouter.get("/available", createQueryModifier, async (req, res) => {
 
     const query = { isAvailable: true, ...req.query };
 
-    console.log(query);
-
     const data = await PropertyAdModel.find(query)
       .limit(100)
       .skip(skip)

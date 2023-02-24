@@ -26,8 +26,11 @@ export default class FCMHelper {
   ) {
     const tokens = fcmTokens.filter(nullFilterHelper);
     try {
-      await defaultMessaging.sendMulticast({ tokens, data: data });
-      // console.log(response.successCount + " messages were sent successfully");
+      const response = await defaultMessaging.sendMulticast({
+        tokens,
+        data: data,
+      });
+      console.log(response.successCount + " messages were sent successfully");
     } catch (error) {
       console.log("Error sending message:", error);
     }
@@ -43,8 +46,10 @@ export default class FCMHelper {
         data: { ...data, event },
       });
       // console.log("Successfully sent message:", response);
+      return true;
     } catch (error) {
       console.log("Error sending message:", error);
+      return false;
     }
   }
 }
@@ -52,4 +57,7 @@ export default class FCMHelper {
 export type NotificationEvent =
   | "new-booking"
   | "booking-offered"
-  | "booking-declined";
+  | "booking-declined"
+  | "deal-ended"
+  | "deal-paid"
+  | "new-message";
