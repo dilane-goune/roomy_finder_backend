@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.RoommateBookingModel = void 0;
 const mongoose_1 = require("mongoose");
 const schema = new mongoose_1.Schema({
     poster: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "User" },
@@ -63,3 +64,24 @@ schema.set("toJSON", {
 schema.set("toObject", { virtuals: true });
 const RoommateAdModel = (0, mongoose_1.model)("RoommateAd", schema);
 exports.default = RoommateAdModel;
+const bookingSchema = new mongoose_1.Schema({
+    poster: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "User" },
+    client: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "User" },
+    ad: { type: mongoose_1.Schema.Types.ObjectId, required: true, ref: "RoommateAd" },
+    checkIn: { type: Date, required: true },
+    checkOut: { type: Date, required: true },
+    status: { type: String, default: "pending" },
+    isPayed: { type: Boolean, default: false },
+    lastPaymentDate: { type: Date },
+    lastTransactionId: { type: String },
+}, {
+    collection: "Bookings",
+    timestamps: true,
+});
+bookingSchema.index({ landlord: 1 });
+bookingSchema.index({ client: 1 });
+bookingSchema.index({ ad: 1 });
+bookingSchema.index({ createdAt: 1 });
+bookingSchema.set("toJSON", { virtuals: true, versionKey: false });
+bookingSchema.set("toObject", { virtuals: true });
+exports.RoommateBookingModel = (0, mongoose_1.model)("RoommateBooking", bookingSchema);

@@ -41,11 +41,11 @@ export default class FCMHelper {
     data: { [key: string]: string }
   ) {
     try {
-      await defaultMessaging.send({
+      const response = await defaultMessaging.send({
         token: fcmToken,
         data: { ...data, event },
       });
-      // console.log("Successfully sent message:", response);
+      console.log("Successfully sent message for event : " + event, response);
       return true;
     } catch (error) {
       console.log("Error sending message:", error);
@@ -58,6 +58,7 @@ export type NotificationEvent =
   | "new-booking"
   | "booking-offered"
   | "booking-declined"
+  | "booking-cancelled"
   | "deal-ended"
   | "deal-paid"
   | "new-message";

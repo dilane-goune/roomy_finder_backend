@@ -25,11 +25,10 @@ propertyAdRouter.get("/my-ads/:id", async (req, res) => {
 
 propertyAdRouter.get("/my-ads", async (req, res) => {
   try {
+    const userId = (req as CustomRequest).userId;
     const skip = parseInt(req.query.skip as string) || 0;
 
-    const query = {};
-
-    const data = await PropertyAdModel.find(query)
+    const data = await PropertyAdModel.find({ poster: userId })
       .limit(100)
       .skip(skip)
       .populate("poster", "-password");
@@ -68,9 +67,22 @@ propertyAdRouter.put("/:id", async (req, res) => {
 
 propertyAdRouter.delete("/:id", async (req, res) => {
   try {
-    const result = await PropertyAdModel.deleteOne({ _id: req.params.id });
-    if (result.deletedCount == 0) res.sendStatus(204);
-    else res.sendStatus(404);
+    const userId = (req as any).userId;
+
+    const ad = await PropertyAdModel.findOne({
+      _id: req.params.id,
+      poster: userId,
+    });
+
+    if (!ad) return res.sendStatus(404);
+    if (ad.quantity != ad.quantityTaken) {
+      return res.status(400).json({ code: "is-booked" });
+    }
+
+    if (!ad.poster.equals(userId)) return res.sendStatus(403);
+
+    await ad.deleteOne();
+    res.sendStatus(204);
   } catch (error) {
     res.sendStatus(500);
     console.error(error);
@@ -81,9 +93,13 @@ propertyAdRouter.get("/available", createQueryModifier, async (req, res) => {
   try {
     const skip = parseInt(req.query.skip as string) || 0;
 
-    const query = { isAvailable: true, ...req.query };
+    const query = req.query;
 
-    const data = await PropertyAdModel.find(query)
+    const data = await PropertyAdModel.find({
+      "address.city": query.city,
+      "address.location": query.location,
+    })
+
       .limit(100)
       .skip(skip)
       .populate("poster", "-password -bankInfo");

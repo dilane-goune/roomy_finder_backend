@@ -46,6 +46,21 @@ export interface RoommateAd {
 
 export interface RoommateAdMethods {}
 
+export interface RoommateBooking {
+  id: string;
+  poster: HydratedDocument<User>;
+  client: HydratedDocument<User>;
+  ad: HydratedDocument<RoommateAd>;
+  status: "pending" | "offered" | "declined";
+  checkIn: Date;
+  checkOut: Date;
+  isPayed: boolean;
+  lastPaymentDate?: Date;
+  lastTransactionId?: String;
+  readonly createdAt: Date;
+}
+export interface RoommateBookingMethods {}
+
 type Interest =
   | "Music"
   | "Reading"

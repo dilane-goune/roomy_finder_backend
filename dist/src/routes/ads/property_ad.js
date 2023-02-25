@@ -34,9 +34,9 @@ propertyAdRouter.get("/my-ads/:id", (req, res) => __awaiter(void 0, void 0, void
 }));
 propertyAdRouter.get("/my-ads", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const userId = req.userId;
         const skip = parseInt(req.query.skip) || 0;
-        const query = {};
-        const data = yield schema_1.default.find(query)
+        const data = yield schema_1.default.find({ poster: userId })
             .limit(100)
             .skip(skip)
             .populate("poster", "-password");
@@ -69,11 +69,20 @@ propertyAdRouter.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, fun
 }));
 propertyAdRouter.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const result = yield schema_1.default.deleteOne({ _id: req.params.id });
-        if (result.deletedCount == 0)
-            res.sendStatus(204);
-        else
-            res.sendStatus(404);
+        const userId = req.userId;
+        const ad = yield schema_1.default.findOne({
+            _id: req.params.id,
+            poster: userId,
+        });
+        if (!ad)
+            return res.sendStatus(404);
+        if (ad.quantity != ad.quantityTaken) {
+            return res.status(400).json({ code: "is-booked" });
+        }
+        if (!ad.poster.equals(userId))
+            return res.sendStatus(403);
+        yield ad.deleteOne();
+        res.sendStatus(204);
     }
     catch (error) {
         res.sendStatus(500);
@@ -83,8 +92,11 @@ propertyAdRouter.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, 
 propertyAdRouter.get("/available", ads_1.createQueryModifier, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const skip = parseInt(req.query.skip) || 0;
-        const query = Object.assign({ isAvailable: true }, req.query);
-        const data = yield schema_1.default.find(query)
+        const query = req.query;
+        const data = yield schema_1.default.find({
+            "address.city": query.city,
+            "address.location": query.location,
+        })
             .limit(100)
             .skip(skip)
             .populate("poster", "-password -bankInfo");

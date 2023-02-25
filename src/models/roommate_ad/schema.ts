@@ -1,5 +1,10 @@
 import { model, Model, Schema } from "mongoose";
-import { RoommateAd, RoommateAdMethods } from "./interface";
+import {
+  RoommateAd,
+  RoommateAdMethods,
+  RoommateBooking,
+  RoommateBookingMethods,
+} from "./interface";
 
 const schema = new Schema<RoommateAd, Model<RoommateAd>, RoommateAdMethods>(
   {
@@ -73,3 +78,35 @@ schema.set("toObject", { virtuals: true });
 const RoommateAdModel = model("RoommateAd", schema);
 
 export default RoommateAdModel;
+
+const bookingSchema = new Schema<
+  RoommateBooking,
+  Model<RoommateBooking>,
+  RoommateBookingMethods
+>(
+  {
+    poster: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+    client: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+    ad: { type: Schema.Types.ObjectId, required: true, ref: "RoommateAd" },
+    checkIn: { type: Date, required: true },
+    checkOut: { type: Date, required: true },
+    status: { type: String, default: "pending" },
+    isPayed: { type: Boolean, default: false },
+    lastPaymentDate: { type: Date },
+    lastTransactionId: { type: String },
+  },
+  {
+    collection: "Bookings",
+    timestamps: true,
+  }
+);
+
+bookingSchema.index({ landlord: 1 });
+bookingSchema.index({ client: 1 });
+bookingSchema.index({ ad: 1 });
+bookingSchema.index({ createdAt: 1 });
+
+bookingSchema.set("toJSON", { virtuals: true, versionKey: false });
+bookingSchema.set("toObject", { virtuals: true });
+
+export const RoommateBookingModel = model("RoommateBooking", bookingSchema);
