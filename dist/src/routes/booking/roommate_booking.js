@@ -95,8 +95,44 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
             "ad": ad.type,
             message,
         });
+        const fiftheenMinutes = 1000 * 60 * 15;
+        const reminderInterval = setInterval((booking, landlord, client) => __awaiter(void 0, void 0, void 0, function* () {
+            const message = `Reminder : Dear ${landlord.firstName} ${landlord.lastName},` +
+                " We are happy to tell you that a " +
+                client.type +
+                `, '${client.firstName} ${client.lastName}'` +
+                " have booked your property, " +
+                ` '${ad.type} in ${ad.address.location}'. Now, you can either accept or decline the booking.`;
+            fcm_helper_1.default.sendNofication("auto-reply", landlord.fcmToken, {
+                bookingId: booking._id.toString(),
+                "ad": ad.type,
+                message,
+            });
+        }), fiftheenMinutes, booking, landlord, client);
+        setTimeout((booking, landlord, client) => __awaiter(void 0, void 0, void 0, function* () {
+            console.log(booking.client.firstName);
+            const messageToPoster = `Auto Reject : \nDear ${landlord.firstName} ${landlord.lastName},` +
+                " We are have autommatically rejected the booking of  '${ad.type} in ${ad.address.city}'" +
+                `, sent by '${client.firstName} ${client.lastName}' due to no reply.`;
+            fcm_helper_1.default.sendNofication("auto-reply", landlord.fcmToken, {
+                message: messageToPoster,
+            });
+            const messageToClient = `Auto Reject : Dear ${booking.client.firstName} ${booking.client.lastName},` +
+                ` We are soory to tell you that your booking of ${ad.type} in ${ad.address.location}` +
+                ` ${booking.poster.firstName} ${booking.poster.lastName}` +
+                " have been cancel due to unresponsive Landlord.";
+            fcm_helper_1.default.sendNofication("auto-reply", client.fcmToken, {
+                message: messageToClient,
+            });
+            clearInterval(reminderInterval);
+            try {
+                yield booking.deleteOne();
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }), fiftheenMinutes + 1000, booking, landlord, client);
         // TODO : Send email
-        // TODO : Save auto decline jod to database
     }
     catch (error) {
         res.sendStatus(500);

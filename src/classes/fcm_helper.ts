@@ -61,4 +61,5 @@ export type NotificationEvent =
   | "booking-cancelled"
   | "deal-ended"
   | "deal-paid"
-  | "new-message";
+  | "new-message"
+  | "auto-reply";

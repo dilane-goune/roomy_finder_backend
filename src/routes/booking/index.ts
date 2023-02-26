@@ -18,19 +18,23 @@ bookingRouter.get("/my-bookings", authentication, async (req, res) => {
 
     const propertyBookings = await PropertyBookingModel.find({
       $or: [{ client: userId }, { poster: userId }],
-    }).populate([
-      { path: "poster" },
-      { path: "client", select: "-password -bankInfo" },
-      { path: "ad", populate: "poster" },
-    ]);
+    })
+      .populate([
+        { path: "poster" },
+        { path: "client", select: "-password -bankInfo" },
+        { path: "ad", populate: "poster" },
+      ])
+      .sort({ createdAt: -1 });
 
     const roommateBookings = await RoommateBookingModel.find({
       $or: [{ client: userId }, { poster: userId }],
-    }).populate([
-      { path: "poster" },
-      { path: "client", select: "-password -bankInfo" },
-      { path: "ad", populate: "poster" },
-    ]);
+    })
+      .populate([
+        { path: "poster" },
+        { path: "client", select: "-password -bankInfo" },
+        { path: "ad", populate: "poster" },
+      ])
+      .sort({ createdAt: -1 });
 
     res.json({ propertyBookings, roommateBookings });
   } catch (error) {

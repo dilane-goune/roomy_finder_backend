@@ -75,7 +75,7 @@ propertyAdRouter.delete("/:id", async (req, res) => {
     });
 
     if (!ad) return res.sendStatus(404);
-    if (ad.quantity != ad.quantityTaken) {
+    if (ad.quantityTaken != 0) {
       return res.status(400).json({ code: "is-booked" });
     }
 
@@ -102,6 +102,7 @@ propertyAdRouter.get("/available", createQueryModifier, async (req, res) => {
 
       .limit(100)
       .skip(skip)
+      .sort({ createdAt: -1 })
       .populate("poster", "-password -bankInfo");
 
     res.json(data);

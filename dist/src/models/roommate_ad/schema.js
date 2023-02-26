@@ -17,6 +17,7 @@ const schema = new mongoose_1.Schema({
     isPremium: { type: Boolean, default: false },
     budget: { type: Number, required: true },
     description: { type: String, required: true },
+    movingDate: { type: Date, required: true },
     images: [String],
     videos: [String],
     isAvailable: { type: Boolean, default: true },
@@ -81,7 +82,9 @@ const bookingSchema = new mongoose_1.Schema({
 bookingSchema.index({ landlord: 1 });
 bookingSchema.index({ client: 1 });
 bookingSchema.index({ ad: 1 });
-bookingSchema.index({ createdAt: 1 });
+bookingSchema.index({ checkIn: -1 });
+bookingSchema.index({ checkOut: -1 });
+bookingSchema.index({ createdAt: -1 });
 bookingSchema.set("toJSON", { virtuals: true, versionKey: false });
 bookingSchema.set("toObject", { virtuals: true });
 exports.RoommateBookingModel = (0, mongoose_1.model)("RoommateBooking", bookingSchema);

@@ -76,7 +76,7 @@ propertyAdRouter.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, 
         });
         if (!ad)
             return res.sendStatus(404);
-        if (ad.quantity != ad.quantityTaken) {
+        if (ad.quantityTaken != 0) {
             return res.status(400).json({ code: "is-booked" });
         }
         if (!ad.poster.equals(userId))
@@ -99,6 +99,7 @@ propertyAdRouter.get("/available", ads_1.createQueryModifier, (req, res) => __aw
         })
             .limit(100)
             .skip(skip)
+            .sort({ createdAt: -1 })
             .populate("poster", "-password -bankInfo");
         res.json(data);
     }

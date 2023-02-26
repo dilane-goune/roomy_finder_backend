@@ -9,6 +9,7 @@ export interface RoommateAd {
   isPremium: boolean;
   budget: number;
   description: string;
+  movingDate: Date;
   images: string[];
   videos: string[];
   readonly createdAt: Date;
@@ -33,6 +34,7 @@ export interface RoommateAd {
     numberOfPeople: string;
     grouping: "Single" | "Couple";
     gender: "Male" | "Female" | "Mix";
+    nationality: string;
     smoking: boolean;
     cooking: boolean;
     drinking: boolean;

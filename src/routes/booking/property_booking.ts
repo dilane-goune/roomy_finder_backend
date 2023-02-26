@@ -88,8 +88,83 @@ bookingRouter.post("/", async (req, res) => {
       message,
     });
 
+    const fiftheenMinutes = 1000 * 60 * 15;
+
+    const reminderInterval = setInterval(
+      async (booking, landlord, client) => {
+        try {
+          const bc = await PropertyBookingModel.findById(booking._id, {
+            status: 1,
+          });
+
+          if (bc?.status == "pending") {
+            const message =
+              `Reminder : Dear ${landlord.firstName} ${landlord.lastName},` +
+              " We are happy to tell you that a " +
+              client.type +
+              `, '${client.firstName} ${client.lastName}'` +
+              " have booked your property, " +
+              ` '${ad.type} in ${ad.address.city}'. Now, you can either accept or decline the booking.`;
+
+            FCMHelper.sendNofication("auto-reply", landlord.fcmToken, {
+              bookingId: booking._id.toString(),
+              "ad": ad.type,
+              message,
+            });
+          } else {
+            clearInterval(reminderInterval);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      fiftheenMinutes,
+      booking,
+      landlord,
+      client
+    );
+
+    setTimeout(
+      async (booking, landlord, client) => {
+        try {
+          const bc = await PropertyBookingModel.findById(booking._id, {
+            status: 1,
+          });
+          if (bc?.status == "pending") {
+            const messageToPoster =
+              `Auto Reject : \nDear ${landlord.firstName} ${landlord.lastName},` +
+              " We are have autommatically rejected the booking of  '${ad.type} in ${ad.address.city}'" +
+              `, sent by '${client.firstName} ${client.lastName}' due to no reply.`;
+
+            FCMHelper.sendNofication("auto-reply", landlord.fcmToken, {
+              message: messageToPoster,
+            });
+
+            const messageToClient =
+              `Auto Reject : Dear ${booking.client.firstName} ${booking.client.lastName},` +
+              ` We are soory to tell you that your booking of ${ad.type} in ${ad.address.city}` +
+              ` ${booking.poster.firstName} ${booking.poster.lastName}` +
+              " have been cancel due to unresponsive Landlord.";
+
+            FCMHelper.sendNofication("auto-reply", client.fcmToken, {
+              message: messageToClient,
+            });
+
+            await bc?.deleteOne();
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          clearInterval(reminderInterval);
+        }
+      },
+      fiftheenMinutes,
+      booking,
+      landlord,
+      client
+    );
+
     // TODO : Send email
-    // TODO : Save auto decline jod to database
   } catch (error) {
     res.sendStatus(500);
     console.error(error);

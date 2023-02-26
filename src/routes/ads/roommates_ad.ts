@@ -2,7 +2,9 @@ import { Router } from "express";
 import { CustomRequest } from "../../interfaces/custom_interfaces";
 import { roommateQueryModifier } from "../../middlewares/ads";
 import authentication from "../../middlewares/authentication";
-import RoommateAdModel from "../../models/roommate_ad/schema";
+import RoommateAdModel, {
+  RoommateBookingModel as BookingModel,
+} from "../../models/roommate_ad/schema";
 
 const roommateAdRouter = Router();
 export default roommateAdRouter;
@@ -55,6 +57,8 @@ roommateAdRouter.post("/", async (req, res) => {
 
 roommateAdRouter.put("/:id", async (req, res) => {
   try {
+    delete req.body.poster;
+
     const data = await RoommateAdModel.findByIdAndUpdate(
       req.params.id,
       req.body
@@ -68,26 +72,27 @@ roommateAdRouter.put("/:id", async (req, res) => {
 
 roommateAdRouter.delete("/:id", async (req, res) => {
   try {
-    // const userId = (req as any).userId;
+    const userId = (req as any).userId;
 
-    // const booking = await BookingModel.findOne({ _id: req.params.id });
+    const ad = await RoommateAdModel.findOne({
+      _id: req.params.id,
+    });
 
-    // if (booking) return res.status(400).json({ code: "is-booked" });
+    if (!ad) return res.sendStatus(404);
 
-    // const deal = await DealModel.findOne({ ad: req.params.id });
+    if (!ad.poster.equals(userId)) return res.sendStatus(403);
 
-    // if (deal) return res.status(400).json({ code: "is-dealed" });
+    const booking = await BookingModel.findOne({
+      ad: ad._id,
+      checkOut: { $gte: new Date() },
+    });
 
-    // const ad = await RoommateAdModel.findOne({
-    //   _id: req.params.id,
-    //   poster: userId,
-    // });
+    if (booking)
+      return res
+        .status(400)
+        .json({ code: "is-booked", "free-date": booking.checkOut });
 
-    // if (!ad) return res.sendStatus(404);
-
-    // if (!ad.poster.equals(userId)) return res.sendStatus(403);
-
-    // await ad.deleteOne();
+    await ad.deleteOne();
     res.sendStatus(204);
   } catch (error) {
     res.sendStatus(500);
@@ -101,16 +106,38 @@ roommateAdRouter.post("/available", roommateQueryModifier, async (req, res) => {
 
     const requestBody = req.body;
 
-    const data = await RoommateAdModel.find({
-      "socialPreferences.gender": requestBody.gender,
+    const query = {
+      "type": requestBody.type,
       "address.location": { $in: requestBody.locations },
       "budget": {
         $gte: parseFloat(requestBody.minBudget + ""),
         $lte: parseFloat(requestBody.maxBudget + ""),
       },
-    })
+      "isPremium": false,
+    };
+
+    const data = await RoommateAdModel.find(query)
       .limit(100)
       .skip(skip)
+      .sort({ createdAt: -1 })
+      .populate("poster", "-password -bankInfo");
+    res.json(data);
+  } catch (error) {
+    res.sendStatus(500);
+    console.error(error);
+  }
+});
+
+roommateAdRouter.post("/premium", roommateQueryModifier, async (req, res) => {
+  try {
+    const skip = parseInt(req.body.skip as string) || 0;
+
+    const query = { "isPremium": true };
+
+    const data = await RoommateAdModel.find(query)
+      .limit(100)
+      .skip(skip)
+      .sort({ createdAt: -1 })
       .populate("poster", "-password -bankInfo");
     res.json(data);
   } catch (error) {

@@ -35,10 +35,12 @@ export interface PropertyAd {
   socialPreferences: {
     numberOfPeople: string;
     gender: "Male" | "Female" | "Mix";
+    grouping: "Single" | "Couple";
     nationality: string;
     smoking: boolean;
     drinking: boolean;
     visitors: boolean;
+    cooking: boolean;
   };
 
   readonly createdAt: Date;

@@ -27,18 +27,22 @@ bookingRouter.get("/my-bookings", authentication_1.default, (req, res) => __awai
         const userId = req.userId;
         const propertyBookings = yield schema_1.PropertyBookingModel.find({
             $or: [{ client: userId }, { poster: userId }],
-        }).populate([
+        })
+            .populate([
             { path: "poster" },
             { path: "client", select: "-password -bankInfo" },
             { path: "ad", populate: "poster" },
-        ]);
+        ])
+            .sort({ createdAt: -1 });
         const roommateBookings = yield schema_2.RoommateBookingModel.find({
             $or: [{ client: userId }, { poster: userId }],
-        }).populate([
+        })
+            .populate([
             { path: "poster" },
             { path: "client", select: "-password -bankInfo" },
             { path: "ad", populate: "poster" },
-        ]);
+        ])
+            .sort({ createdAt: -1 });
         res.json({ propertyBookings, roommateBookings });
     }
     catch (error) {

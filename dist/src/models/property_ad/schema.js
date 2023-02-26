@@ -31,10 +31,12 @@ const schema = new mongoose_1.Schema({
     socialPreferences: {
         numberOfPeople: { type: String, required: true },
         gender: { type: String, required: true, enum: ["Male", "Female", "Mix"] },
+        grouping: { type: String, required: true, enum: ["Single", "Couple"] },
         nationality: { type: String, default: false },
         smoking: { type: Boolean, default: false },
         drinking: { type: Boolean, default: false },
         visitors: { type: Boolean, default: false },
+        cooking: { type: Boolean, default: false },
     },
     amenties: [String],
 }, {
@@ -42,7 +44,7 @@ const schema = new mongoose_1.Schema({
     timestamps: true,
 });
 schema.index({ poster: 1 });
-schema.index({ createdAt: 1 });
+schema.index({ createdAt: -1 });
 schema.set("toJSON", {
     virtuals: true,
     versionKey: false,
