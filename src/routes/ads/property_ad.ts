@@ -31,6 +31,7 @@ propertyAdRouter.get("/my-ads", async (req, res) => {
     const data = await PropertyAdModel.find({ poster: userId })
       .limit(100)
       .skip(skip)
+      .sort({ createdAt: -1 })
       .populate("poster", "-password");
     res.json(data);
   } catch (error) {

@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const authentication_1 = __importDefault(require("../../middlewares/authentication"));
 const schema_1 = require("../../models/property_ad/schema");
-const schema_2 = require("../../models/roommate_ad/schema");
 const property_booking_1 = __importDefault(require("./property_booking"));
 const roommate_booking_1 = __importDefault(require("./roommate_booking"));
 const bookingRouter = (0, express_1.Router)();
@@ -34,16 +33,16 @@ bookingRouter.get("/my-bookings", authentication_1.default, (req, res) => __awai
             { path: "ad", populate: "poster" },
         ])
             .sort({ createdAt: -1 });
-        const roommateBookings = yield schema_2.RoommateBookingModel.find({
-            $or: [{ client: userId }, { poster: userId }],
-        })
-            .populate([
-            { path: "poster" },
-            { path: "client", select: "-password -bankInfo" },
-            { path: "ad", populate: "poster" },
-        ])
-            .sort({ createdAt: -1 });
-        res.json({ propertyBookings, roommateBookings });
+        // const roommateBookings = await RoommateBookingModel.find({
+        //   $or: [{ client: userId }, { poster: userId }],
+        // })
+        //   .populate([
+        //     { path: "poster" },
+        //     { path: "client", select: "-password -bankInfo" },
+        //     { path: "ad", populate: "poster" },
+        //   ])
+        //   .sort({ createdAt: -1 });
+        res.json(propertyBookings);
     }
     catch (error) {
         res.sendStatus(500);

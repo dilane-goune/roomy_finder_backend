@@ -62,6 +62,7 @@ roommateAdRouter.get("/my-ads", (req, res) => __awaiter(void 0, void 0, void 0, 
         const data = yield schema_1.default.find({ poster: userId })
             .limit(100)
             .skip(skip)
+            .sort({ createdAt: -1 })
             .populate("poster", "-password");
         res.json(data);
     }
@@ -120,6 +121,8 @@ roommateAdRouter.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, 
 roommateAdRouter.post("/available", ads_1.roommateQueryModifier, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const skip = parseInt(req.body.skip) || 0;
+        console.log(req.body);
+        console.log("roommatch");
         const requestBody = req.body;
         const query = {
             "type": requestBody.type,
@@ -145,6 +148,8 @@ roommateAdRouter.post("/available", ads_1.roommateQueryModifier, (req, res) => _
 roommateAdRouter.post("/premium", ads_1.roommateQueryModifier, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const skip = parseInt(req.body.skip) || 0;
+        console.log(req.body);
+        console.log("premium");
         const query = { "isPremium": true };
         const data = yield schema_1.default.find(query)
             .limit(100)

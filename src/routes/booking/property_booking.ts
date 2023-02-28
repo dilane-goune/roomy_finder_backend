@@ -79,7 +79,7 @@ bookingRouter.post("/", async (req, res) => {
       " We are happy to tell you that a " +
       client.type +
       `, '${client.firstName} ${client.lastName}'` +
-      " have booked your property, " +
+      " have book your property, " +
       ` '${ad.type} in ${ad.address.city}'. Now, you can either accept or decline the booking.`;
 
     FCMHelper.sendNofication("new-booking", landlord.fcmToken, {
@@ -103,7 +103,7 @@ bookingRouter.post("/", async (req, res) => {
               " We are happy to tell you that a " +
               client.type +
               `, '${client.firstName} ${client.lastName}'` +
-              " have booked your property, " +
+              " have book your property, " +
               ` '${ad.type} in ${ad.address.city}'. Now, you can either accept or decline the booking.`;
 
             FCMHelper.sendNofication("auto-reply", landlord.fcmToken, {
@@ -125,7 +125,7 @@ bookingRouter.post("/", async (req, res) => {
     );
 
     setTimeout(
-      async (booking, landlord, client) => {
+      async (booking, landlord, client, ad) => {
         try {
           const bc = await PropertyBookingModel.findById(booking._id, {
             status: 1,
@@ -161,7 +161,8 @@ bookingRouter.post("/", async (req, res) => {
       fiftheenMinutes,
       booking,
       landlord,
-      client
+      client,
+      ad
     );
 
     // TODO : Send email

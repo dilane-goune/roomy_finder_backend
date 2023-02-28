@@ -39,6 +39,7 @@ propertyAdRouter.get("/my-ads", (req, res) => __awaiter(void 0, void 0, void 0, 
         const data = yield schema_1.default.find({ poster: userId })
             .limit(100)
             .skip(skip)
+            .sort({ createdAt: -1 })
             .populate("poster", "-password");
         res.json(data);
     }

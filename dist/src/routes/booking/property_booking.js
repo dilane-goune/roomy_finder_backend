@@ -96,7 +96,7 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
             " We are happy to tell you that a " +
             client.type +
             `, '${client.firstName} ${client.lastName}'` +
-            " have booked your property, " +
+            " have book your property, " +
             ` '${ad.type} in ${ad.address.city}'. Now, you can either accept or decline the booking.`;
         fcm_helper_1.default.sendNofication("new-booking", landlord.fcmToken, {
             bookingId: booking._id.toString(),
@@ -114,7 +114,7 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
                         " We are happy to tell you that a " +
                         client.type +
                         `, '${client.firstName} ${client.lastName}'` +
-                        " have booked your property, " +
+                        " have book your property, " +
                         ` '${ad.type} in ${ad.address.city}'. Now, you can either accept or decline the booking.`;
                     fcm_helper_1.default.sendNofication("auto-reply", landlord.fcmToken, {
                         bookingId: booking._id.toString(),
@@ -130,7 +130,7 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
                 console.error(e);
             }
         }), fiftheenMinutes, booking, landlord, client);
-        setTimeout((booking, landlord, client) => __awaiter(void 0, void 0, void 0, function* () {
+        setTimeout((booking, landlord, client, ad) => __awaiter(void 0, void 0, void 0, function* () {
             try {
                 const bc = yield schema_1.PropertyBookingModel.findById(booking._id, {
                     status: 1,
@@ -158,7 +158,7 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
             finally {
                 clearInterval(reminderInterval);
             }
-        }), fiftheenMinutes, booking, landlord, client);
+        }), fiftheenMinutes, booking, landlord, client, ad);
         // TODO : Send email
     }
     catch (error) {
