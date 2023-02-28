@@ -158,7 +158,7 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
             finally {
                 clearInterval(reminderInterval);
             }
-        }), fiftheenMinutes, booking, landlord, client, ad);
+        }), fiftheenMinutes * 4 - 50, booking, landlord, client, ad);
         // TODO : Send email
     }
     catch (error) {
@@ -172,10 +172,7 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
         const booking = yield schema_1.PropertyBookingModel.findOne({
             _id: req.params.id,
             poster: userId,
-        }).populate([
-            { path: "poster" },
-            { path: "client", select: "-password -bankInfo" },
-        ]);
+        }).populate([{ path: "poster" }, { path: "client" }]);
         if (!booking)
             return res.sendStatus(404);
         const ad = yield schema_1.default.findById(booking.ad._id);
@@ -186,7 +183,7 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
         }
         yield (0, run_in_transaction_1.default)((session) => __awaiter(void 0, void 0, void 0, function* () {
             yield booking.updateOne({ $set: { status: "offered" } }, { session });
-            yield ad.updateOne({ $inc: { quantityTaken: -booking.quantity } }, { session });
+            yield ad.updateOne({ $inc: { quantityTaken: booking.quantity } }, { session });
         }));
         const message = `Dear ${booking.client.firstName} ${booking.client.lastName},` +
             " We are happy to tell you that the landlord," +
@@ -194,8 +191,6 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
             " have accepted your booking of the" +
             ` ${ad.type} in ${ad.address.city}. Now, you can have to pay the renting fee.`;
         fcm_helper_1.default.sendNofication("booking-offered", booking.client.fcmToken, {
-            bookingId: req.params.id,
-            "ad": ad.type,
             message,
         });
         // TODO : Send email
@@ -210,6 +205,7 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
 bookingRouter.post("/:id/cancel", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.userId;
+        console.log(req.params.id);
         yield (0, run_in_transaction_1.default)((session) => __awaiter(void 0, void 0, void 0, function* () {
             const booking = yield schema_1.PropertyBookingModel.findById({
                 _id: req.params.id,
@@ -238,12 +234,13 @@ bookingRouter.post("/:id/cancel", (req, res) => __awaiter(void 0, void 0, void 0
                         " a client just cancelled her booking of your property " +
                         `${booking.ad.type} in ${booking.ad.address.city}.`;
             }
-            const recieverFcmToken = req.body.recieverFcmToken;
             yield schema_1.default.updateOne({ _id: booking.ad._id }, { $inc: { quantityTaken: booking.quantity } }, { session });
             booking.deleteOne({ session });
             fcm_helper_1.default.sendNofication(booking.poster._id.equals(userId)
                 ? "booking-declined"
-                : "booking-cancelled", recieverFcmToken, {
+                : "booking-cancelled", booking.poster._id.equals(userId)
+                ? booking.client.fcmToken
+                : booking.poster.fcmToken, {
                 bookingId: req.params.id,
                 message,
             });

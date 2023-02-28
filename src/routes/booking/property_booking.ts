@@ -158,7 +158,7 @@ bookingRouter.post("/", async (req, res) => {
           clearInterval(reminderInterval);
         }
       },
-      fiftheenMinutes,
+      fiftheenMinutes * 4 - 50,
       booking,
       landlord,
       client,
@@ -178,10 +178,7 @@ bookingRouter.post("/:id/offer", async (req, res) => {
     const booking = await PropertyBookingModel.findOne({
       _id: req.params.id,
       poster: userId,
-    }).populate([
-      { path: "poster" },
-      { path: "client", select: "-password -bankInfo" },
-    ]);
+    }).populate([{ path: "poster" }, { path: "client" }]);
 
     if (!booking) return res.sendStatus(404);
 
@@ -196,7 +193,7 @@ bookingRouter.post("/:id/offer", async (req, res) => {
     await runInTransaction(async (session) => {
       await booking.updateOne({ $set: { status: "offered" } }, { session });
       await ad.updateOne(
-        { $inc: { quantityTaken: -booking.quantity } },
+        { $inc: { quantityTaken: booking.quantity } },
         { session }
       );
     });
@@ -209,8 +206,6 @@ bookingRouter.post("/:id/offer", async (req, res) => {
       ` ${ad.type} in ${ad.address.city}. Now, you can have to pay the renting fee.`;
 
     FCMHelper.sendNofication("booking-offered", booking.client.fcmToken, {
-      bookingId: req.params.id,
-      "ad": ad.type,
       message,
     });
 
@@ -227,6 +222,7 @@ bookingRouter.post("/:id/offer", async (req, res) => {
 bookingRouter.post("/:id/cancel", async (req, res) => {
   try {
     const userId = (req as any).userId;
+    console.log(req.params.id);
 
     await runInTransaction(async (session) => {
       const booking = await PropertyBookingModel.findById({
@@ -258,8 +254,6 @@ bookingRouter.post("/:id/cancel", async (req, res) => {
           `${booking.ad.type} in ${booking.ad.address.city}.`;
       }
 
-      const recieverFcmToken = req.body.recieverFcmToken;
-
       await PropertyAdModel.updateOne(
         { _id: booking.ad._id },
         { $inc: { quantityTaken: booking.quantity } },
@@ -271,7 +265,9 @@ bookingRouter.post("/:id/cancel", async (req, res) => {
         booking.poster._id.equals(userId)
           ? "booking-declined"
           : "booking-cancelled",
-        recieverFcmToken,
+        booking.poster._id.equals(userId)
+          ? booking.client.fcmToken
+          : booking.poster.fcmToken,
         {
           bookingId: req.params.id,
           message,
