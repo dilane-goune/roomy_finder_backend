@@ -183,6 +183,7 @@ bookingRouter.post("/:id/offer", async (req, res) => {
     if (!booking) return res.sendStatus(404);
 
     const ad = await PropertyAdModel.findById(booking.ad._id);
+    const client = await UserModel.findById(booking.client._id);
 
     if (!ad) return res.sendStatus(404);
 
@@ -205,9 +206,16 @@ bookingRouter.post("/:id/offer", async (req, res) => {
       " have accepted your booking of the" +
       ` ${ad.type} in ${ad.address.city}. Now, you can have to pay the renting fee.`;
 
-    FCMHelper.sendNofication("booking-offered", booking.client.fcmToken, {
-      message,
-    });
+    const fcmResponse = await FCMHelper.sendNofication(
+      "booking-offered",
+      client?.fcmToken || booking.client.fcmToken,
+      {
+        message,
+      }
+    );
+
+    console.log(fcmResponse);
+    console.log(client);
 
     // TODO : Send email
     // TODO : Save jod to database

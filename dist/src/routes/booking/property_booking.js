@@ -176,6 +176,7 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
         if (!booking)
             return res.sendStatus(404);
         const ad = yield schema_1.default.findById(booking.ad._id);
+        const client = yield schema_2.default.findById(booking.client._id);
         if (!ad)
             return res.sendStatus(404);
         if (ad.quantity == ad.quantityTaken) {
@@ -190,9 +191,11 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
             ` ${booking.poster.firstName} ${booking.poster.lastName}` +
             " have accepted your booking of the" +
             ` ${ad.type} in ${ad.address.city}. Now, you can have to pay the renting fee.`;
-        fcm_helper_1.default.sendNofication("booking-offered", booking.client.fcmToken, {
+        const fcmResponse = yield fcm_helper_1.default.sendNofication("booking-offered", (client === null || client === void 0 ? void 0 : client.fcmToken) || booking.client.fcmToken, {
             message,
         });
+        console.log(fcmResponse);
+        console.log(client);
         // TODO : Send email
         // TODO : Save jod to database
         res.sendStatus(200);

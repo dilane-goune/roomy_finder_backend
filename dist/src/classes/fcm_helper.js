@@ -55,12 +55,12 @@ class FCMHelper {
     static sendNofication(event, fcmToken, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield firebase_1.defaultMessaging.send({
+                const res = yield firebase_1.defaultMessaging.send({
                     token: fcmToken,
                     data: Object.assign(Object.assign({}, data), { event }),
                 });
                 // console.log("Successfully sent message for event : " + event, response);
-                return true;
+                return res;
             }
             catch (error) {
                 console.log("Error sending message:", error);

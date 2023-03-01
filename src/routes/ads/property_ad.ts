@@ -42,6 +42,15 @@ propertyAdRouter.get("/my-ads", async (req, res) => {
 
 propertyAdRouter.post("/", async (req, res) => {
   try {
+    if (req.body.deposit) {
+      if (!parseFloat(req.body.depositPrice + "")) {
+        delete req.body.depositPrice;
+        req.body.deposit = false;
+      }
+    } else {
+      delete req.body.depositPrice;
+    }
+
     const data = await PropertyAdModel.create({
       ...req.body,
       poster: (req as CustomRequest).userId,
@@ -55,6 +64,15 @@ propertyAdRouter.post("/", async (req, res) => {
 
 propertyAdRouter.put("/:id", async (req, res) => {
   try {
+    if (req.body.deposit) {
+      if (!parseFloat(req.body.depositPrice + "")) {
+        delete req.body.depositPrice;
+        req.body.deposit = false;
+      }
+    } else {
+      delete req.body.depositPrice;
+    }
+
     const data = await PropertyAdModel.findByIdAndUpdate(
       req.params.id,
       req.body

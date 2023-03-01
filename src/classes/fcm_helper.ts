@@ -41,12 +41,12 @@ export default class FCMHelper {
     data: { [key: string]: string }
   ) {
     try {
-      await defaultMessaging.send({
+      const res = await defaultMessaging.send({
         token: fcmToken,
         data: { ...data, event },
       });
       // console.log("Successfully sent message for event : " + event, response);
-      return true;
+      return res;
     } catch (error) {
       console.log("Error sending message:", error);
       return false;
