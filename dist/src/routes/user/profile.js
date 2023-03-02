@@ -28,12 +28,15 @@ profileRouter.delete("/remove-profile-picture", authentication_1.default, (req, 
         res.sendStatus(500);
     }
 }));
-profileRouter.get("/profile-picture", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+profileRouter.get("/profile-info", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const user = yield schema_1.default.findOne({ _id: req.query.userId }, { pp: 1 });
+        const user = yield schema_1.default.findOne({ _id: req.query.userId }, { profilePicture: 1, fcmToken: 1 });
         if (!user)
             return res.sendStatus(404);
-        res.json({ profilePicture: user.profilePicture });
+        res.json({
+            profilePicture: user.profilePicture,
+            fcmToken: user.fcmToken,
+        });
     }
     catch (error) {
         console.log(error);

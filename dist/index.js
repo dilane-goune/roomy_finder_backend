@@ -14,6 +14,7 @@ const constants_1 = require("./src/data/constants");
 const user_1 = __importDefault(require("./src/routes/user"));
 const ads_1 = __importDefault(require("./src/routes/ads"));
 const index_1 = __importDefault(require("./src/routes/booking/index"));
+const utils_1 = __importDefault(require("./src/routes/utils"));
 mongoose_1.default.set("strictQuery", true);
 // database connection
 mongoose_1.default
@@ -33,6 +34,7 @@ app.get("/", (req, res) => res.json({ message: "Room Finder" }));
 app.use("/api/v1", user_1.default);
 app.use("/api/v1/ads", ads_1.default);
 app.use("/api/v1/bookings", index_1.default);
+app.use("/api/v1/utils", utils_1.default);
 const listenner = server.listen(constants_1.PORT, constants_1.ADDRESS, function () {
     return console.log(`Server running on port ${constants_1.PORT}`);
 });

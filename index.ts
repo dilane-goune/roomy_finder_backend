@@ -10,6 +10,7 @@ import { ADDRESS, DATA_BASE_URL, PORT } from "./src/data/constants";
 import userRouter from "./src/routes/user";
 import adsRouter from "./src/routes/ads";
 import bookingRouter from "./src/routes/booking/index";
+import utilRouter from "./src/routes/utils";
 
 mongoose.set("strictQuery", true);
 
@@ -35,6 +36,7 @@ app.get("/", (req, res) => res.json({ message: "Room Finder" }));
 app.use("/api/v1", userRouter);
 app.use("/api/v1/ads", adsRouter);
 app.use("/api/v1/bookings", bookingRouter);
+app.use("/api/v1/utils", utilRouter);
 
 const listenner = server.listen(PORT, ADDRESS, function () {
   return console.log(`Server running on port ${PORT}`);

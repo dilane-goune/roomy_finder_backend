@@ -21,12 +21,18 @@ profileRouter.delete(
     }
   }
 );
-profileRouter.get("/profile-picture", async (req, res) => {
+profileRouter.get("/profile-info", async (req, res) => {
   try {
-    const user = await UserModel.findOne({ _id: req.query.userId }, { pp: 1 });
+    const user = await UserModel.findOne(
+      { _id: req.query.userId },
+      { profilePicture: 1, fcmToken: 1 }
+    );
 
     if (!user) return res.sendStatus(404);
-    res.json({ profilePicture: user.profilePicture });
+    res.json({
+      profilePicture: user.profilePicture,
+      fcmToken: user.fcmToken,
+    });
   } catch (error: any) {
     console.log(error);
     res.sendStatus(500);

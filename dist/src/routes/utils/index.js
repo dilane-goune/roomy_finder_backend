@@ -13,28 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const fcm_helper_1 = __importDefault(require("../../classes/fcm_helper"));
-const schema_1 = __importDefault(require("../../models/user/schema"));
-const messageRouter = (0, express_1.Router)();
-exports.default = messageRouter;
-messageRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const authentication_1 = __importDefault(require("../../middlewares/authentication"));
+const schema_1 = require("../../models/util/schema");
+const utilRouter = (0, express_1.Router)();
+exports.default = utilRouter;
+utilRouter.use(authentication_1.default);
+utilRouter.get("/app-update", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const reciverId = req.body.reciverId;
-        if (!reciverId)
-            return res.sendStatus(400);
-        const reciever = yield schema_1.default.findById(reciverId, {
-            fcmToken: 1,
-            firstName: 1,
-        });
-        if (!reciever)
-            return res.sendStatus(404);
-        const result = yield fcm_helper_1.default.sendNofication("new-message", reciever.fcmToken, {
-            jsonMessage: JSON.stringify(req.body.message),
-        });
-        if (result)
-            res.sendStatus(200);
+        const update = yield schema_1.AppVersionModel.findOne({});
+        if (update)
+            res.json(update);
         else
-            res.sendStatus(500);
+            res.sendStatus(404);
     }
     catch (error) {
         res.sendStatus(500);

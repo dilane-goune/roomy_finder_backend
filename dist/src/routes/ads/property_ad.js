@@ -50,6 +50,15 @@ propertyAdRouter.get("/my-ads", (req, res) => __awaiter(void 0, void 0, void 0, 
 }));
 propertyAdRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (req.body.deposit) {
+            if (!parseFloat(req.body.depositPrice + "")) {
+                delete req.body.depositPrice;
+                req.body.deposit = false;
+            }
+        }
+        else {
+            delete req.body.depositPrice;
+        }
         const data = yield schema_1.default.create(Object.assign(Object.assign({}, req.body), { poster: req.userId }));
         res.json(data);
     }
@@ -60,6 +69,15 @@ propertyAdRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, funct
 }));
 propertyAdRouter.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (req.body.deposit) {
+            if (!parseFloat(req.body.depositPrice + "")) {
+                delete req.body.depositPrice;
+                req.body.deposit = false;
+            }
+        }
+        else {
+            delete req.body.depositPrice;
+        }
         const data = yield schema_1.default.findByIdAndUpdate(req.params.id, req.body);
         res.json(data);
     }
