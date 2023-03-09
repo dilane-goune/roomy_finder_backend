@@ -18,8 +18,9 @@ const schema_1 = __importDefault(require("../../models/user/schema"));
 const messageRouter = (0, express_1.Router)();
 exports.default = messageRouter;
 messageRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const reciverId = req.body.reciverId;
+        const reciverId = (_a = JSON.parse(req.body.reciever)) === null || _a === void 0 ? void 0 : _a.id;
         if (!reciverId)
             return res.sendStatus(400);
         const reciever = yield schema_1.default.findById(reciverId, {
@@ -29,7 +30,9 @@ messageRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
         if (!reciever)
             return res.sendStatus(404);
         const result = yield fcm_helper_1.default.sendNofication("new-message", reciever.fcmToken, {
-            jsonMessage: JSON.stringify(req.body.message),
+            message: req.body.message,
+            reciever: req.body.reciever,
+            sender: req.body.sender,
         });
         if (result)
             res.sendStatus(200);

@@ -62,4 +62,6 @@ export type NotificationEvent =
   | "deal-ended"
   | "deal-paid"
   | "new-message"
-  | "auto-reply";
+  | "auto-reply"
+  | "pay-property-rent-fee-completed-client"
+  | "pay-property-rent-fee-completed-landlord";

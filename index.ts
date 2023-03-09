@@ -11,6 +11,7 @@ import userRouter from "./src/routes/user";
 import adsRouter from "./src/routes/ads";
 import bookingRouter from "./src/routes/booking/index";
 import utilRouter from "./src/routes/utils";
+import webHookHandler from "./src/webhooks";
 
 mongoose.set("strictQuery", true);
 
@@ -25,7 +26,13 @@ mongoose
 
 const app = express();
 app.use(helmet());
-app.use(express.json());
+app.use((req, res, next) => {
+  if (req.originalUrl.includes("/webhooks/stripe")) {
+    express.raw({ type: "application/json" })(req, res, next);
+  } else {
+    express.json()(req, res, next);
+  }
+});
 app.use("/public", express.static(process.cwd() + "/public"));
 app.set("view engine", "ejs");
 
@@ -37,6 +44,7 @@ app.use("/api/v1", userRouter);
 app.use("/api/v1/ads", adsRouter);
 app.use("/api/v1/bookings", bookingRouter);
 app.use("/api/v1/utils", utilRouter);
+app.use("/api/v1/webhooks", webHookHandler);
 
 const listenner = server.listen(PORT, ADDRESS, function () {
   return console.log(`Server running on port ${PORT}`);

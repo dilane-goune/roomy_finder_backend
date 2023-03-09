@@ -15,6 +15,7 @@ const user_1 = __importDefault(require("./src/routes/user"));
 const ads_1 = __importDefault(require("./src/routes/ads"));
 const index_1 = __importDefault(require("./src/routes/booking/index"));
 const utils_1 = __importDefault(require("./src/routes/utils"));
+const webhooks_1 = __importDefault(require("./src/webhooks"));
 mongoose_1.default.set("strictQuery", true);
 // database connection
 mongoose_1.default
@@ -25,7 +26,14 @@ mongoose_1.default
 });
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
-app.use(express_1.default.json());
+app.use((req, res, next) => {
+    if (req.originalUrl.includes("/webhooks/stripe")) {
+        express_1.default.raw({ type: "application/json" })(req, res, next);
+    }
+    else {
+        express_1.default.json()(req, res, next);
+    }
+});
 app.use("/public", express_1.default.static(process.cwd() + "/public"));
 app.set("view engine", "ejs");
 const server = http_1.default.createServer(app);
@@ -35,6 +43,7 @@ app.use("/api/v1", user_1.default);
 app.use("/api/v1/ads", ads_1.default);
 app.use("/api/v1/bookings", index_1.default);
 app.use("/api/v1/utils", utils_1.default);
+app.use("/api/v1/webhooks", webhooks_1.default);
 const listenner = server.listen(constants_1.PORT, constants_1.ADDRESS, function () {
     return console.log(`Server running on port ${constants_1.PORT}`);
 });

@@ -104,8 +104,6 @@ roommateAdRouter.delete("/:id", async (req, res) => {
 roommateAdRouter.post("/available", roommateQueryModifier, async (req, res) => {
   try {
     const skip = parseInt(req.body.skip as string) || 0;
-    console.log(req.body);
-    console.log("roommatch");
     const requestBody = req.body;
 
     const query = {

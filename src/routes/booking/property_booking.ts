@@ -7,6 +7,13 @@ import PropertyAdModel, {
   PropertyBookingModel,
 } from "../../models/property_ad/schema";
 import UserModel from "../../models/user/schema";
+import stripeAPI from "stripe";
+import { STRIPE_SECRET_KEY } from "../../data/constants";
+
+const stripe = new stripeAPI(STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
+
+const successUrl = "https://roomyfinder.com/stripe/success.html";
+const cancelUrl = "https://roomyfinder.com/stripe/cancel.html";
 
 const bookingRouter = Router();
 export default bookingRouter;
@@ -288,3 +295,102 @@ bookingRouter.post("/:id/cancel", async (req, res) => {
     console.error(error);
   }
 });
+
+bookingRouter.post(
+  "/stripe/create-pay-booking-checkout-session",
+  async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const booking = await PropertyBookingModel.findOne({
+        _id: req.body.bookingId,
+        client: userId,
+      }).populate([{ path: "poster" }, { path: "client" }, { path: "ad" }]);
+
+      if (!booking) return res.status(404).json({ code: "booking-not-found" });
+
+      let rentFee: number;
+      let commissionFee: number;
+
+      // The difference in milliseconds between the checkout and the checkin date
+      const checkOutCheckInMillisecondsDifference =
+        booking.checkOut.getTime() - booking.checkIn.getTime();
+
+      // The number of periods(days,weeks,monyhs) the rent will last
+      let rentTypePeriod: number;
+
+      switch (booking.rentType) {
+        case "Monthly":
+          const oneMothDuration = 1000 * 3600 * 24 * 30;
+          rentTypePeriod = Math.ceil(
+            checkOutCheckInMillisecondsDifference / oneMothDuration
+          );
+          break;
+        case "Weekly":
+          const oneWeekDuration = 1000 * 3600 * 24 * 7;
+          rentTypePeriod = Math.ceil(
+            checkOutCheckInMillisecondsDifference / oneWeekDuration
+          );
+          break;
+        default:
+          const oneDayDuration = 1000 * 3600 * 24;
+          rentTypePeriod = Math.ceil(
+            checkOutCheckInMillisecondsDifference / oneDayDuration
+          );
+          break;
+      }
+      // Calculating the rent fee  and commission bases on the rent type and duration
+      switch (booking.rentType) {
+        case "Monthly":
+          rentFee = booking.ad.monthlyPrice * booking.quantity * rentTypePeriod;
+          commissionFee = rentFee * 0.1;
+          break;
+        case "Weekly":
+          rentFee = booking.ad.weeklyPrice * booking.quantity * rentTypePeriod;
+          commissionFee = rentFee * 0.1;
+          break;
+        default:
+          rentFee = booking.ad.dailyPrice * booking.quantity * rentTypePeriod;
+          commissionFee = rentFee * 0.05;
+          break;
+      }
+
+      // TAV
+      const tavFee = commissionFee * 0.05;
+      const servicFee = (rentFee + commissionFee + tavFee) * 0.03;
+
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price_data: {
+              currency: "aed",
+              product_data: {
+                name: "Property rent fee",
+                description:
+                  `Rent fee for  ${booking.quantity} ${booking.ad.type}` +
+                  ` at  ${booking.ad.address.location}.`,
+              },
+              //multiple by 100 to remove since stripe consider it in cent
+              unit_amount: (rentFee + commissionFee + tavFee + servicFee) * 100,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata: {
+          object: "PAY_PROPERTY_RENT",
+          bookingId: booking.id,
+          userId,
+        },
+        customer_email: booking.client.email,
+      });
+
+      // res.redirect(303, session.url);
+      res.json({ paymentUrl: session.url });
+    } catch (error) {
+      console.log(error);
+      res.sendStatus(500);
+    }
+  }
+);

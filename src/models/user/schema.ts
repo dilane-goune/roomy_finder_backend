@@ -20,13 +20,8 @@ const schema = new Schema<User, Model<User>, UserMethods>(
     isPremium: { type: Boolean, default: false },
     isDisabled: { type: Boolean, default: false },
     failedToLoginCount: { type: Number, default: 0 },
-    bankInfo: {
-      name: { type: String },
-      accountNumber: { type: String },
-      accountHolderName: { type: String },
-      iban: { type: String },
-      swiftCode: { type: String },
-    },
+    accountBalance: { type: Number, default: 0 },
+    stripeConnectId: { type: String },
   },
 
   {

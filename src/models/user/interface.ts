@@ -13,14 +13,9 @@ export interface User {
   isPremium: boolean;
   isDisabled: boolean;
   failedToLoginCount: number;
-  bankInfo?: {
-    name: string;
-    accountNumber: string;
-    accountHolderName: string;
-    iban: string;
-    swiftCode: string;
-  };
   readonly createdAt: Date;
+  accountBalance: number;
+  stripeConnectId?: string;
 }
 
 export interface UserMethods {}

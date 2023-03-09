@@ -7,7 +7,7 @@ export default messageRouter;
 
 messageRouter.post("/", async (req, res) => {
   try {
-    const reciverId = req.body.reciverId;
+    const reciverId = JSON.parse(req.body.reciever)?.id;
     if (!reciverId) return res.sendStatus(400);
 
     const reciever = await UserModel.findById(reciverId, {
@@ -21,7 +21,9 @@ messageRouter.post("/", async (req, res) => {
       "new-message",
       reciever.fcmToken,
       {
-        jsonMessage: JSON.stringify(req.body.message),
+        message: req.body.message,
+        reciever: req.body.reciever,
+        sender: req.body.sender,
       }
     );
 

@@ -3,6 +3,7 @@ import { CustomRequest } from "../../interfaces/custom_interfaces";
 import { createQueryModifier } from "../../middlewares/ads";
 import authentication from "../../middlewares/authentication";
 import PropertyAdModel from "../../models/property_ad/schema";
+import UserModel from "../../models/user/schema";
 
 const propertyAdRouter = Router();
 export default propertyAdRouter;
@@ -28,7 +29,10 @@ propertyAdRouter.get("/my-ads", async (req, res) => {
     const userId = (req as CustomRequest).userId;
     const skip = parseInt(req.query.skip as string) || 0;
 
-    const data = await PropertyAdModel.find({ poster: userId })
+    const data = await PropertyAdModel.find({
+      poster: userId,
+      isPostPaid: true,
+    })
       .limit(100)
       .skip(skip)
       .sort({ createdAt: -1 })
@@ -42,6 +46,11 @@ propertyAdRouter.get("/my-ads", async (req, res) => {
 
 propertyAdRouter.post("/", async (req, res) => {
   try {
+    const userId = (req as CustomRequest).userId;
+    const user = await UserModel.findById(userId);
+
+    if (!user) return res.status(404).json({ code: "user-not-found" });
+
     if (req.body.deposit) {
       if (!parseFloat(req.body.depositPrice + "")) {
         delete req.body.depositPrice;
@@ -51,11 +60,13 @@ propertyAdRouter.post("/", async (req, res) => {
       delete req.body.depositPrice;
     }
 
-    const data = await PropertyAdModel.create({
+    const ad = await PropertyAdModel.create({
       ...req.body,
       poster: (req as CustomRequest).userId,
+      isPostPaid: false,
     });
-    res.json(data);
+
+    res.json(ad);
   } catch (error) {
     res.sendStatus(500);
     console.error(error);

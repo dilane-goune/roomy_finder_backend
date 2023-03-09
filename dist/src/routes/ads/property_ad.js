@@ -16,6 +16,7 @@ const express_1 = require("express");
 const ads_1 = require("../../middlewares/ads");
 const authentication_1 = __importDefault(require("../../middlewares/authentication"));
 const schema_1 = __importDefault(require("../../models/property_ad/schema"));
+const schema_2 = __importDefault(require("../../models/user/schema"));
 const propertyAdRouter = (0, express_1.Router)();
 exports.default = propertyAdRouter;
 propertyAdRouter.use(authentication_1.default);
@@ -36,7 +37,10 @@ propertyAdRouter.get("/my-ads", (req, res) => __awaiter(void 0, void 0, void 0, 
     try {
         const userId = req.userId;
         const skip = parseInt(req.query.skip) || 0;
-        const data = yield schema_1.default.find({ poster: userId })
+        const data = yield schema_1.default.find({
+            poster: userId,
+            isPostPaid: true,
+        })
             .limit(100)
             .skip(skip)
             .sort({ createdAt: -1 })
@@ -50,6 +54,10 @@ propertyAdRouter.get("/my-ads", (req, res) => __awaiter(void 0, void 0, void 0, 
 }));
 propertyAdRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const userId = req.userId;
+        const user = yield schema_2.default.findById(userId);
+        if (!user)
+            return res.status(404).json({ code: "user-not-found" });
         if (req.body.deposit) {
             if (!parseFloat(req.body.depositPrice + "")) {
                 delete req.body.depositPrice;
@@ -59,8 +67,8 @@ propertyAdRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, funct
         else {
             delete req.body.depositPrice;
         }
-        const data = yield schema_1.default.create(Object.assign(Object.assign({}, req.body), { poster: req.userId }));
-        res.json(data);
+        const ad = yield schema_1.default.create(Object.assign(Object.assign({}, req.body), { poster: req.userId, isPostPaid: false }));
+        res.json(ad);
     }
     catch (error) {
         res.sendStatus(500);

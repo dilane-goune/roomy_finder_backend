@@ -44,6 +44,12 @@ export interface PropertyAd {
   };
 
   readonly createdAt: Date;
+  ratings: {
+    raterId: string;
+    score: number;
+    comment?: string;
+    rateName: string;
+  }[];
 }
 
 export interface PropertyAdMethods {}
@@ -59,10 +65,11 @@ export interface PropertyBooking {
   checkOut: Date;
   rentType: "Monthly" | "Weekly" | "Daily";
   isPayed: boolean;
-  lastPaymentDate?: Date;
-  lastTransactionId?: String;
+  paymentService?: "STRIPE" | "PAYPAL";
+  transactionId?: string;
 
   readonly createdAt: Date;
+  extra?: { [key: string]: any };
 }
 export interface PropertyBookingMethods {}
 

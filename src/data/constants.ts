@@ -19,3 +19,8 @@ export const MAIL_SMTP_PORT =
   parseInt(process.env.MAIL_SMTP_PORT as string) || 587;
 export const MAIL_SMTP_USERNAME = process.env.MAIL_SMTP_USERNAME || "";
 export const MAIL_SMTP_PASSWORD = process.env.MAIL_SMTP_PASSWORD || "";
+
+// Stripe API
+export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
+export const STRIPE_WEBHOOK_SIGNING_SECRET =
+  process.env.STRIPE_WEBHOOK_SIGNING_SECRET || "";

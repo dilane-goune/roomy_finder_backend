@@ -3,13 +3,11 @@ import { CustomRequest } from "../../interfaces/custom_interfaces";
 import authentication from "../../middlewares/authentication";
 import { PropertyBookingModel } from "../../models/property_ad/schema";
 import propertyBookingRouter from "./property_booking";
-import roommateBookingRouter from "./roommate_booking";
 
 const bookingRouter = Router();
 export default bookingRouter;
 
 bookingRouter.use("/property-ad", propertyBookingRouter);
-bookingRouter.use("/roommate-ad", roommateBookingRouter);
 
 bookingRouter.get("/my-bookings", authentication, async (req, res) => {
   try {

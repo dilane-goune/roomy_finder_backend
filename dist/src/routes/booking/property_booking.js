@@ -41,6 +41,11 @@ const run_in_transaction_1 = __importDefault(require("../../functions/run_in_tra
 const authentication_1 = __importDefault(require("../../middlewares/authentication"));
 const schema_1 = __importStar(require("../../models/property_ad/schema"));
 const schema_2 = __importDefault(require("../../models/user/schema"));
+const stripe_1 = __importDefault(require("stripe"));
+const constants_1 = require("../../data/constants");
+const stripe = new stripe_1.default(constants_1.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
+const successUrl = "https://roomyfinder.com/stripe/success.html";
+const cancelUrl = "https://roomyfinder.com/stripe/cancel.html";
 const bookingRouter = (0, express_1.Router)();
 exports.default = bookingRouter;
 bookingRouter.use(authentication_1.default);
@@ -253,5 +258,86 @@ bookingRouter.post("/:id/cancel", (req, res) => __awaiter(void 0, void 0, void 0
     catch (error) {
         res.sendStatus(500);
         console.error(error);
+    }
+}));
+bookingRouter.post("/stripe/create-pay-booking-checkout-session", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId;
+        const booking = yield schema_1.PropertyBookingModel.findOne({
+            _id: req.body.bookingId,
+            client: userId,
+        }).populate([{ path: "poster" }, { path: "client" }, { path: "ad" }]);
+        if (!booking)
+            return res.status(404).json({ code: "booking-not-found" });
+        let rentFee;
+        let commissionFee;
+        // The difference in milliseconds between the checkout and the checkin date
+        const checkOutCheckInMillisecondsDifference = booking.checkOut.getTime() - booking.checkIn.getTime();
+        // The number of periods(days,weeks,monyhs) the rent will last
+        let rentTypePeriod;
+        switch (booking.rentType) {
+            case "Monthly":
+                const oneMothDuration = 1000 * 3600 * 24 * 30;
+                rentTypePeriod = Math.ceil(checkOutCheckInMillisecondsDifference / oneMothDuration);
+                break;
+            case "Weekly":
+                const oneWeekDuration = 1000 * 3600 * 24 * 7;
+                rentTypePeriod = Math.ceil(checkOutCheckInMillisecondsDifference / oneWeekDuration);
+                break;
+            default:
+                const oneDayDuration = 1000 * 3600 * 24;
+                rentTypePeriod = Math.ceil(checkOutCheckInMillisecondsDifference / oneDayDuration);
+                break;
+        }
+        // Calculating the rent fee  and commission bases on the rent type and duration
+        switch (booking.rentType) {
+            case "Monthly":
+                rentFee = booking.ad.monthlyPrice * booking.quantity * rentTypePeriod;
+                commissionFee = rentFee * 0.1;
+                break;
+            case "Weekly":
+                rentFee = booking.ad.weeklyPrice * booking.quantity * rentTypePeriod;
+                commissionFee = rentFee * 0.1;
+                break;
+            default:
+                rentFee = booking.ad.dailyPrice * booking.quantity * rentTypePeriod;
+                commissionFee = rentFee * 0.05;
+                break;
+        }
+        // TAV
+        const tavFee = commissionFee * 0.05;
+        const servicFee = (rentFee + commissionFee + tavFee) * 0.03;
+        const session = yield stripe.checkout.sessions.create({
+            line_items: [
+                {
+                    price_data: {
+                        currency: "aed",
+                        product_data: {
+                            name: "Property rent fee",
+                            description: `Rent fee for  ${booking.quantity} ${booking.ad.type}` +
+                                ` at  ${booking.ad.address.location}.`,
+                        },
+                        //multiple by 100 to remove since stripe consider it in cent
+                        unit_amount: (rentFee + commissionFee + tavFee + servicFee) * 100,
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: "payment",
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            metadata: {
+                object: "PAY_PROPERTY_RENT",
+                bookingId: booking.id,
+                userId,
+            },
+            customer_email: booking.client.email,
+        });
+        // res.redirect(303, session.url);
+        res.json({ paymentUrl: session.url });
+    }
+    catch (error) {
+        console.log(error);
+        res.sendStatus(500);
     }
 }));

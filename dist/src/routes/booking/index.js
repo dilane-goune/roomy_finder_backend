@@ -16,11 +16,9 @@ const express_1 = require("express");
 const authentication_1 = __importDefault(require("../../middlewares/authentication"));
 const schema_1 = require("../../models/property_ad/schema");
 const property_booking_1 = __importDefault(require("./property_booking"));
-const roommate_booking_1 = __importDefault(require("./roommate_booking"));
 const bookingRouter = (0, express_1.Router)();
 exports.default = bookingRouter;
 bookingRouter.use("/property-ad", property_booking_1.default);
-bookingRouter.use("/roommate-ad", roommate_booking_1.default);
 bookingRouter.get("/my-bookings", authentication_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.userId;

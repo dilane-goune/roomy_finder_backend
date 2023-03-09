@@ -39,6 +39,14 @@ const schema = new mongoose_1.Schema({
         cooking: { type: Boolean, default: false },
     },
     amenties: [String],
+    ratings: [
+        {
+            score: { type: Number, min: 0, max: 5, required: true },
+            raterId: { type: String, required: true },
+            rateName: { type: String, required: true },
+            comment: { type: String },
+        },
+    ],
 }, {
     collection: "PropertyAds",
     timestamps: true,
@@ -62,8 +70,9 @@ const bookingSchema = new mongoose_1.Schema({
     status: { type: String, default: "pending" },
     rentType: { type: String, required: true },
     isPayed: { type: Boolean, default: false },
-    lastPaymentDate: { type: Date },
-    lastTransactionId: { type: String },
+    paymentService: { type: String, enum: ["STRIPE", "PAYPAL"] },
+    transactionId: { type: String },
+    extra: { type: mongoose_1.Schema.Types.Map },
 }, {
     collection: "PropertyBookings",
     timestamps: true,
