@@ -18,6 +18,7 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const schema_1 = __importDefault(require("../../models/user/schema"));
 const constants_1 = require("../../data/constants");
 const schema_2 = __importDefault(require("../../models/login_monitory/schema"));
+const authentication_1 = __importDefault(require("../../middlewares/authentication"));
 const authRouter = (0, express_1.Router)();
 exports.default = authRouter;
 // generate access token
@@ -52,6 +53,28 @@ authRouter.post("/credentials", (req, res) => __awaiter(void 0, void 0, void 0, 
         req.body.password = hashedPassword;
         const user = yield schema_1.default.create(req.body);
         res.status(201).json(user);
+    }
+    catch (error) {
+        if (error.code === 11000)
+            return res.status(409).json({ code: "user-exist" });
+        console.error(error);
+        res.sendStatus(500);
+    }
+}));
+authRouter.put("/credentials", authentication_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield schema_1.default.findByIdAndUpdate(req.userId, {
+            $set: {
+                gender: req.body.gender,
+                email: req.body.email,
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                country: req.body.country,
+            },
+        });
+        if (!user)
+            return res.sendStatus(404);
+        res.sendStatus(200);
     }
     catch (error) {
         if (error.code === 11000)

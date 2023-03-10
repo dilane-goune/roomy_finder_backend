@@ -129,7 +129,7 @@ function handleStripeRentPaySucceded(stripeEvent) {
                     " we are happy to tell you that a tenant have completed the payment of your property, " +
                     ` ${ad === null || ad === void 0 ? void 0 : ad.type} located ${ad === null || ad === void 0 ? void 0 : ad.address.city}.` +
                     ` You can now see the tenant information and chat with ${(client === null || client === void 0 ? void 0 : client.gender) == "Male" ? "him" : "her"}.`;
-                fcm_helper_1.default.sendNofication("pay-property-rent-fee-completed-landlord", (client === null || client === void 0 ? void 0 : client.fcmToken) || booking.client.fcmToken, {
+                fcm_helper_1.default.sendNofication("pay-property-rent-fee-completed-landlord", (poster === null || poster === void 0 ? void 0 : poster.fcmToken) || booking.poster.fcmToken, {
                     message: landlordMessage,
                     bookingId: booking.id + "",
                 });

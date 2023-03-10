@@ -24,3 +24,9 @@ export const MAIL_SMTP_PASSWORD = process.env.MAIL_SMTP_PASSWORD || "";
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 export const STRIPE_WEBHOOK_SIGNING_SECRET =
   process.env.STRIPE_WEBHOOK_SIGNING_SECRET || "";
+
+// Paypal
+export const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID as string;
+export const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET as string;
+export const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID as string;
+export const PAYPAL_API_URL = "https://api-m.sandbox.paypal.com";

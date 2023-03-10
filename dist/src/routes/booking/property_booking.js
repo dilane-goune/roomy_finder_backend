@@ -43,9 +43,38 @@ const schema_1 = __importStar(require("../../models/property_ad/schema"));
 const schema_2 = __importDefault(require("../../models/user/schema"));
 const stripe_1 = __importDefault(require("stripe"));
 const constants_1 = require("../../data/constants");
+const dayjs_1 = __importDefault(require("dayjs"));
+const localizedFormat_1 = __importDefault(require("dayjs/plugin/localizedFormat"));
+const crypto_1 = require("crypto");
+const axios_1 = __importDefault(require("axios"));
+const generate_token_1 = require("../../functions/generate_token");
+dayjs_1.default.extend(localizedFormat_1.default);
 const stripe = new stripe_1.default(constants_1.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
-const successUrl = "https://roomyfinder.com/stripe/success.html";
-const cancelUrl = "https://roomyfinder.com/stripe/cancel.html";
+const successUrl = "https://roomyfinder.com/rent-payemt/success.html";
+const cancelUrl = "https://roomyfinder.com/rent-paymet/cancel.html";
+const axios = axios_1.default.create({
+    baseURL: constants_1.PAYPAL_API_URL,
+    headers: {
+        "Content-Type": "application/json",
+        "PayPal-Request-Id": "339987fb-ff64-435e-9def-6a728d33a865",
+        "Authorization": `Bearer ${process.env.PAYPAL_TOKEN}`,
+    },
+});
+axios.interceptors.response.use((res) => res, (error) => __awaiter(void 0, void 0, void 0, function* () {
+    const originalConfig = error.config;
+    if (!originalConfig)
+        return Promise.reject(error);
+    if (error.response) {
+        if (error.response.status === 401 && !originalConfig._retry) {
+            originalConfig._retry = true;
+            const token = yield (0, generate_token_1.generatePaypalToken)();
+            if (!token)
+                return Promise.reject(error);
+            return axios(Object.assign(Object.assign({}, originalConfig), { headers: Object.assign(Object.assign({}, originalConfig.headers), { "Authorization": "Bearer " + token }) }));
+        }
+    }
+    return Promise.reject(error);
+}));
 const bookingRouter = (0, express_1.Router)();
 exports.default = bookingRouter;
 bookingRouter.use(authentication_1.default);
@@ -79,15 +108,15 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
         const quantity = parseInt(req.body.quantity + "");
         if (!quantity)
             return res.sendStatus(400);
-        const landlord = yield schema_2.default.findById(req.body.landlordId);
-        const client = yield schema_2.default.findById(userId);
         const ad = yield schema_1.default.findById(adId);
+        if (!ad)
+            return res.status(400).json({ "code": "ad-not-found" });
+        const landlord = yield schema_2.default.findById(ad.poster._id);
+        const client = yield schema_2.default.findById(userId);
         if (!landlord)
             return res.status(400).json({ "code": "landlord-not-found" });
         if (!client)
             return res.status(400).json({ "code": "client-not-found" });
-        if (!ad)
-            return res.status(400).json({ "code": "ad-not-found" });
         if (ad.quantity - ad.quantityTaken < quantity)
             return res.status(400).json({
                 code: "quantity-not-enough",
@@ -97,15 +126,12 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
             return res.sendStatus(403);
         const booking = yield schema_1.PropertyBookingModel.create(Object.assign(Object.assign({}, req.body), { client: userId, poster: landlord, ad: adId }));
         res.sendStatus(200);
-        const message = `Dear ${landlord.firstName} ${landlord.lastName},` +
-            " We are happy to tell you that a " +
-            client.type +
-            `, '${client.firstName} ${client.lastName}'` +
-            " have book your property, " +
-            ` '${ad.type} in ${ad.address.city}'. Now, you can either accept or decline the booking.`;
+        const message = `Congratulations. You got booked for ${ad.type} ${booking.rentType}.\n` +
+            `Check in : ${(0, dayjs_1.default)(booking.checkIn).format("LL")}\n` +
+            `Check out : ${(0, dayjs_1.default)(booking.checkOut).format("LL")}`;
         fcm_helper_1.default.sendNofication("new-booking", landlord.fcmToken, {
-            bookingId: booking._id.toString(),
-            "ad": ad.type,
+            "booking": JSON.stringify(booking),
+            "ad": JSON.stringify(ad),
             message,
         });
         const fiftheenMinutes = 1000 * 60 * 15;
@@ -191,19 +217,15 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
             yield booking.updateOne({ $set: { status: "offered" } }, { session });
             yield ad.updateOne({ $inc: { quantityTaken: booking.quantity } }, { session });
         }));
-        const message = `Dear ${booking.client.firstName} ${booking.client.lastName},` +
-            " We are happy to tell you that the landlord," +
-            ` ${booking.poster.firstName} ${booking.poster.lastName}` +
-            " have accepted your booking of the" +
-            ` ${ad.type} in ${ad.address.city}. Now, you can have to pay the renting fee.`;
-        const fcmResponse = yield fcm_helper_1.default.sendNofication("booking-offered", (client === null || client === void 0 ? void 0 : client.fcmToken) || booking.client.fcmToken, {
-            message,
-        });
-        console.log(fcmResponse);
-        console.log(client);
-        // TODO : Send email
-        // TODO : Save jod to database
         res.sendStatus(200);
+        const clientMessage = `Congratulations. Your rent request to ${ad.type} in ${ad.address.city} has been approved. ` +
+            "Please pay the rent fee amount to get futher with the landlord " +
+            "contact information details and check in your new place now !";
+        fcm_helper_1.default.sendNofication("booking-offered", (client === null || client === void 0 ? void 0 : client.fcmToken) || booking.client.fcmToken, {
+            message: clientMessage,
+            "booking": JSON.stringify(booking),
+            "ad": JSON.stringify(ad),
+        });
     }
     catch (error) {
         res.sendStatus(500);
@@ -213,7 +235,6 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
 bookingRouter.post("/:id/cancel", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.userId;
-        console.log(req.params.id);
         yield (0, run_in_transaction_1.default)((session) => __awaiter(void 0, void 0, void 0, function* () {
             const booking = yield schema_1.PropertyBookingModel.findById({
                 _id: req.params.id,
@@ -232,9 +253,7 @@ bookingRouter.post("/:id/cancel", (req, res) => __awaiter(void 0, void 0, void 0
             if (booking.poster._id.equals(userId)) {
                 message =
                     `Dear ${booking.client.firstName} ${booking.client.lastName},` +
-                        " We appoligize that the Lanlord declined your booking of the property" +
-                        `${booking.ad.type} in ${booking.ad.address.city}. ` +
-                        "Check out simmillar properties for search.";
+                        " sorry the property you choose is not more available. Please choose another option";
             }
             else {
                 message =
@@ -243,7 +262,7 @@ bookingRouter.post("/:id/cancel", (req, res) => __awaiter(void 0, void 0, void 0
                         `${booking.ad.type} in ${booking.ad.address.city}.`;
             }
             yield schema_1.default.updateOne({ _id: booking.ad._id }, { $inc: { quantityTaken: booking.quantity } }, { session });
-            booking.deleteOne({ session });
+            yield booking.deleteOne({ session });
             fcm_helper_1.default.sendNofication(booking.poster._id.equals(userId)
                 ? "booking-declined"
                 : "booking-cancelled", booking.poster._id.equals(userId)
@@ -318,7 +337,7 @@ bookingRouter.post("/stripe/create-pay-booking-checkout-session", (req, res) => 
                                 ` at  ${booking.ad.address.location}.`,
                         },
                         //multiple by 100 to remove since stripe consider it in cent
-                        unit_amount: (rentFee + commissionFee + tavFee + servicFee) * 100,
+                        unit_amount: Math.ceil(rentFee + commissionFee + tavFee + servicFee) * 100,
                     },
                     quantity: 1,
                 },
@@ -339,5 +358,121 @@ bookingRouter.post("/stripe/create-pay-booking-checkout-session", (req, res) => 
     catch (error) {
         console.log(error);
         res.sendStatus(500);
+    }
+}));
+bookingRouter.post("/paypal/create-payment-link", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId;
+        const booking = yield schema_1.PropertyBookingModel.findOne({
+            _id: req.body.bookingId,
+            client: userId,
+        }).populate([{ path: "poster" }, { path: "client" }, { path: "ad" }]);
+        if (!booking)
+            return res.status(404).json({ code: "booking-not-found" });
+        let rentFee;
+        let commissionFee;
+        // The difference in milliseconds between the checkout and the checkin date
+        const checkOutCheckInMillisecondsDifference = booking.checkOut.getTime() - booking.checkIn.getTime();
+        // The number of periods(days,weeks,monyhs) the rent will last
+        let rentTypePeriod;
+        switch (booking.rentType) {
+            case "Monthly":
+                const oneMothDuration = 1000 * 3600 * 24 * 30;
+                rentTypePeriod = Math.ceil(checkOutCheckInMillisecondsDifference / oneMothDuration);
+                break;
+            case "Weekly":
+                const oneWeekDuration = 1000 * 3600 * 24 * 7;
+                rentTypePeriod = Math.ceil(checkOutCheckInMillisecondsDifference / oneWeekDuration);
+                break;
+            default:
+                const oneDayDuration = 1000 * 3600 * 24;
+                rentTypePeriod = Math.ceil(checkOutCheckInMillisecondsDifference / oneDayDuration);
+                break;
+        }
+        // Calculating the rent fee  and commission bases on the rent type and duration
+        switch (booking.rentType) {
+            case "Monthly":
+                rentFee = booking.ad.monthlyPrice * booking.quantity * rentTypePeriod;
+                commissionFee = rentFee * 0.1;
+                break;
+            case "Weekly":
+                rentFee = booking.ad.weeklyPrice * booking.quantity * rentTypePeriod;
+                commissionFee = rentFee * 0.1;
+                break;
+            default:
+                rentFee = booking.ad.dailyPrice * booking.quantity * rentTypePeriod;
+                commissionFee = rentFee * 0.05;
+                break;
+        }
+        // TAV
+        const tavFee = commissionFee * 0.05;
+        const servicFee = (rentFee + commissionFee + tavFee) * 0.03;
+        //TODO : Remove *0.27 in production and change currency to AED
+        const amount = Math.ceil(rentFee + commissionFee + tavFee + servicFee) * 0.27;
+        const currency = "USD";
+        const paymentData = {
+            "intent": "CAPTURE",
+            "purchase_units": [
+                {
+                    "items": [
+                        {
+                            "name": "Roomy Finder Rent feee payment",
+                            "description": `Rent fee for  ${booking.quantity} ${booking.ad.type}` +
+                                ` at  ${booking.ad.address.location}.`,
+                            "quantity": "1",
+                            "unit_amount": {
+                                "currency_code": currency,
+                                "value": "" + amount,
+                            },
+                        },
+                    ],
+                    "amount": {
+                        "currency_code": currency,
+                        "value": "" + amount,
+                        "breakdown": {
+                            "item_total": {
+                                "currency_code": currency,
+                                "value": "" + amount,
+                            },
+                        },
+                    },
+                },
+            ],
+            // TODO : Add the return and cancel urls
+            "application_context": {
+                "return_url": successUrl,
+                "cancel_url": cancelUrl,
+            },
+        };
+        const response = yield axios.post("/v2/checkout/orders", paymentData, {
+            headers: {
+                "Prefer": "return=minimal",
+                "PayPal-Request-Id": (0, crypto_1.randomUUID)(),
+                "Authorization": "Bearer " + process.env.PAYPAL_TOKEN,
+            },
+        });
+        if (response.status != 201)
+            return res.sendStatus(406);
+        const data = response.data;
+        const links = data.links;
+        // res.redirect(303, session.url);
+        res.json({ paymentUrl: links[1].href });
+    }
+    catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
+}));
+bookingRouter.post("/pay-cash", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId;
+        const booking = yield schema_1.PropertyBookingModel.findOneAndUpdate({ _id: req.body.bookingId, client: userId }, { $set: { isPayed: true } }, { new: true });
+        if (!booking)
+            return res.status(404).json({ code: "booking-not-found" });
+        return res.sendStatus(200);
+    }
+    catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
     }
 }));

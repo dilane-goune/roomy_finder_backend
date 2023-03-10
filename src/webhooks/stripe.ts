@@ -137,7 +137,7 @@ async function handleStripeRentPaySucceded(stripeEvent: any): Promise<number> {
 
       FCMHelper.sendNofication(
         "pay-property-rent-fee-completed-landlord",
-        client?.fcmToken || booking.client.fcmToken,
+        poster?.fcmToken || booking.poster.fcmToken,
         {
           message: landlordMessage,
           bookingId: booking.id + "",

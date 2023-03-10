@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const authentication_1 = __importDefault(require("../../middlewares/authentication"));
 const schema_1 = __importDefault(require("../../models/user/schema"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
 const profileRouter = (0, express_1.Router)();
 exports.default = profileRouter;
 profileRouter.delete("/remove-profile-picture", authentication_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -50,7 +51,9 @@ profileRouter.put("/password", authentication_1.default, (req, res) => __awaiter
         const oldPassword = req.body.oldPassword;
         const newPassword = req.body.newPassword;
         const user = yield schema_1.default.findById(userId, { password: 1 });
-        if (oldPassword != (user === null || user === void 0 ? void 0 : user.password))
+        if (!user)
+            return res.sendStatus(404);
+        if (!bcrypt_1.default.compareSync(oldPassword, user.password))
             return res.sendStatus(403);
         const result = yield schema_1.default.updateOne({ _id: userId }, { $set: { password: newPassword } });
         if (result.modifiedCount == 1)

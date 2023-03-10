@@ -2,6 +2,7 @@ import { Router } from "express";
 import { CustomRequest } from "../../interfaces/custom_interfaces";
 import authentication from "../../middlewares/authentication";
 import UserModel from "../../models/user/schema";
+import bcrypt from "bcrypt";
 
 const profileRouter = Router();
 export default profileRouter;
@@ -46,7 +47,10 @@ profileRouter.put("/password", authentication, async (req, res) => {
     const oldPassword = req.body.oldPassword;
     const newPassword = req.body.newPassword;
     const user = await UserModel.findById(userId, { password: 1 });
-    if (oldPassword != user?.password) return res.sendStatus(403);
+
+    if (!user) return res.sendStatus(404);
+    if (!bcrypt.compareSync(oldPassword, user.password))
+      return res.sendStatus(403);
 
     const result = await UserModel.updateOne(
       { _id: userId },

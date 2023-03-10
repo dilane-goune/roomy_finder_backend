@@ -63,5 +63,8 @@ export type NotificationEvent =
   | "deal-paid"
   | "new-message"
   | "auto-reply"
+  | "pay-out-completed"
+  | "pay-out-failed"
+  | "pay-property-rent-fee-failed-client"
   | "pay-property-rent-fee-completed-client"
   | "pay-property-rent-fee-completed-landlord";

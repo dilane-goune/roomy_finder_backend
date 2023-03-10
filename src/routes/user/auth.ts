@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import UserModel from "../../models/user/schema";
 import { SECRET_KEY } from "../../data/constants";
 import LoginMonitoryModel from "../../models/login_monitory/schema";
+import authentication from "../../middlewares/authentication";
 
 const authRouter = Router();
 export default authRouter;
@@ -45,6 +46,28 @@ authRouter.post("/credentials", async (req, res) => {
     const user = await UserModel.create(req.body);
 
     res.status(201).json(user);
+  } catch (error: any) {
+    if (error.code === 11000)
+      return res.status(409).json({ code: "user-exist" });
+    console.error(error);
+    res.sendStatus(500);
+  }
+});
+
+authRouter.put("/credentials", authentication, async (req, res) => {
+  try {
+    const user = await UserModel.findByIdAndUpdate((req as any).userId, {
+      $set: {
+        gender: req.body.gender,
+        email: req.body.email,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        country: req.body.country,
+      },
+    });
+
+    if (!user) return res.sendStatus(404);
+    res.sendStatus(200);
   } catch (error: any) {
     if (error.code === 11000)
       return res.status(409).json({ code: "user-exist" });
