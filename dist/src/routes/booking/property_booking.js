@@ -130,8 +130,7 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
             `Check in : ${(0, dayjs_1.default)(booking.checkIn).format("LL")}\n` +
             `Check out : ${(0, dayjs_1.default)(booking.checkOut).format("LL")}`;
         fcm_helper_1.default.sendNofication("new-booking", landlord.fcmToken, {
-            "booking": JSON.stringify(booking),
-            "ad": JSON.stringify(ad),
+            "bookingId": booking.id.toString(),
             message,
         });
         const fiftheenMinutes = 1000 * 60 * 15;
@@ -223,8 +222,7 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
             "contact information details and check in your new place now !";
         fcm_helper_1.default.sendNofication("booking-offered", (client === null || client === void 0 ? void 0 : client.fcmToken) || booking.client.fcmToken, {
             message: clientMessage,
-            "booking": JSON.stringify(booking),
-            "ad": JSON.stringify(ad),
+            "bookingId": booking.id.toString(),
         });
     }
     catch (error) {

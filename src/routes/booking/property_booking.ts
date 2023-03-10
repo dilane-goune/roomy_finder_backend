@@ -132,8 +132,7 @@ bookingRouter.post("/", async (req, res) => {
       `Check out : ${dayjs(booking.checkOut).format("LL")}`;
 
     FCMHelper.sendNofication("new-booking", landlord.fcmToken, {
-      "booking": JSON.stringify(booking),
-      "ad": JSON.stringify(ad),
+      "bookingId": booking.id.toString(),
       message,
     });
 
@@ -259,8 +258,7 @@ bookingRouter.post("/:id/offer", async (req, res) => {
       client?.fcmToken || booking.client.fcmToken,
       {
         message: clientMessage,
-        "booking": JSON.stringify(booking),
-        "ad": JSON.stringify(ad),
+        "bookingId": booking.id.toString(),
       }
     );
   } catch (error) {
