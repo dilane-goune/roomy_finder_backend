@@ -45,14 +45,8 @@ const schema_2 = __importDefault(require("../models/user/schema"));
 const stripe = new stripe_1.default(constants_1.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
 const stripeWebHookHandler = (0, express_1.Router)();
 exports.default = stripeWebHookHandler;
-const createOrder = (session) => {
-    // TODO: fill me in
-    console.log("Creating order...");
-};
-const emailCustomerAboutFailedPayment = (session) => {
-    // TODO: fill me in
-    console.log("Emailing customer...");
-};
+const createOrder = (session) => { };
+const emailCustomerAboutFailedPayment = (session) => { };
 stripeWebHookHandler.post("/", (request, response) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const payload = request.body;

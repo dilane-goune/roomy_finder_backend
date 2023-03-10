@@ -51,3 +51,11 @@ const listenner = server.listen(PORT, ADDRESS, function () {
 });
 
 process.on("exit", (_) => listenner.close());
+
+// Public routes
+app.get("/rent-payemt/success", (req, res) => {
+  res.sendFile(process.cwd() + "/public/rent_payment_success.html");
+});
+app.get("/rent-payemt/cancel", (req, res) => {
+  res.sendFile(process.cwd() + "/public/rent_payment_cancel.html");
+});

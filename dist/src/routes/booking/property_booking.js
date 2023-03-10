@@ -50,8 +50,8 @@ const axios_1 = __importDefault(require("axios"));
 const generate_token_1 = require("../../functions/generate_token");
 dayjs_1.default.extend(localizedFormat_1.default);
 const stripe = new stripe_1.default(constants_1.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
-const successUrl = "https://roomyfinder.com/rent-payemt/success.html";
-const cancelUrl = "https://roomyfinder.com/rent-paymet/cancel.html";
+const successUrl = `${constants_1.SERVER_URL}/rent-payemt/success`;
+const cancelUrl = `${constants_1.SERVER_URL}/rent-payemt/cancel`;
 const axios = axios_1.default.create({
     baseURL: constants_1.PAYPAL_API_URL,
     headers: {
@@ -172,9 +172,9 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
                     fcm_helper_1.default.sendNofication("auto-reply", landlord.fcmToken, {
                         message: messageToPoster,
                     });
-                    const messageToClient = `Auto Reject : Dear ${booking.client.firstName} ${booking.client.lastName},` +
+                    const messageToClient = `Auto Reject : Dear ${client.firstName} ${client.lastName},` +
                         ` We are soory to tell you that your booking of ${ad.type} in ${ad.address.city}` +
-                        ` ${booking.poster.firstName} ${booking.poster.lastName}` +
+                        ` ${landlord.firstName} ${landlord.lastName}` +
                         " have been cancel due to unresponsive Landlord.";
                     fcm_helper_1.default.sendNofication("auto-reply", client.fcmToken, {
                         message: messageToClient,
@@ -205,6 +205,8 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
         }).populate([{ path: "poster" }, { path: "client" }]);
         if (!booking)
             return res.sendStatus(404);
+        if (booking.status == "offered")
+            return res.sendStatus(409);
         const ad = yield schema_1.default.findById(booking.ad._id);
         const client = yield schema_2.default.findById(booking.client._id);
         if (!ad)
@@ -243,6 +245,8 @@ bookingRouter.post("/:id/cancel", (req, res) => __awaiter(void 0, void 0, void 0
             ]);
             if (!booking)
                 return res.sendStatus(404);
+            if (booking.status == "declined")
+                return res.sendStatus(409);
             if (booking.poster.id != userId && booking.client.id != userId)
                 return res.sendStatus(403);
             if (booking.status == "offered")
@@ -286,6 +290,8 @@ bookingRouter.post("/stripe/create-pay-booking-checkout-session", (req, res) => 
         }).populate([{ path: "poster" }, { path: "client" }, { path: "ad" }]);
         if (!booking)
             return res.status(404).json({ code: "booking-not-found" });
+        if (booking.isPayed)
+            return res.sendStatus(409);
         let rentFee;
         let commissionFee;
         // The difference in milliseconds between the checkout and the checkin date
@@ -341,8 +347,8 @@ bookingRouter.post("/stripe/create-pay-booking-checkout-session", (req, res) => 
                 },
             ],
             mode: "payment",
-            success_url: successUrl,
-            cancel_url: cancelUrl,
+            success_url: successUrl + "?bookingId=" + booking.id,
+            cancel_url: cancelUrl + "?bookingId=" + booking.id,
             metadata: {
                 object: "PAY_PROPERTY_RENT",
                 bookingId: booking.id,
@@ -367,6 +373,8 @@ bookingRouter.post("/paypal/create-payment-link", (req, res) => __awaiter(void 0
         }).populate([{ path: "poster" }, { path: "client" }, { path: "ad" }]);
         if (!booking)
             return res.status(404).json({ code: "booking-not-found" });
+        if (booking.isPayed)
+            return res.sendStatus(409);
         let rentFee;
         let commissionFee;
         // The difference in milliseconds between the checkout and the checkin date
@@ -438,8 +446,8 @@ bookingRouter.post("/paypal/create-payment-link", (req, res) => __awaiter(void 0
             ],
             // TODO : Add the return and cancel urls
             "application_context": {
-                "return_url": successUrl,
-                "cancel_url": cancelUrl,
+                "return_url": successUrl + "?bookingId=" + booking.id,
+                "cancel_url": cancelUrl + "?bookingId=" + booking.id,
             },
         };
         const response = yield axios.post("/v2/checkout/orders", paymentData, {
@@ -467,6 +475,8 @@ bookingRouter.post("/pay-cash", (req, res) => __awaiter(void 0, void 0, void 0, 
         const booking = yield schema_1.PropertyBookingModel.findOneAndUpdate({ _id: req.body.bookingId, client: userId }, { $set: { isPayed: true } }, { new: true });
         if (!booking)
             return res.status(404).json({ code: "booking-not-found" });
+        if (booking.isPayed)
+            return res.sendStatus(409);
         return res.sendStatus(200);
     }
     catch (error) {

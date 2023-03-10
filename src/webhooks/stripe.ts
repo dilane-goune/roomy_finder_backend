@@ -17,15 +17,9 @@ const stripeWebHookHandler = Router();
 
 export default stripeWebHookHandler;
 
-const createOrder = (session: any) => {
-  // TODO: fill me in
-  console.log("Creating order...");
-};
+const createOrder = (session: any) => {};
 
-const emailCustomerAboutFailedPayment = (session: any) => {
-  // TODO: fill me in
-  console.log("Emailing customer...");
-};
+const emailCustomerAboutFailedPayment = (session: any) => {};
 
 stripeWebHookHandler.post("/", async (request, response) => {
   try {

@@ -8,7 +8,11 @@ import PropertyAdModel, {
 } from "../../models/property_ad/schema";
 import UserModel from "../../models/user/schema";
 import stripeAPI from "stripe";
-import { PAYPAL_API_URL, STRIPE_SECRET_KEY } from "../../data/constants";
+import {
+  PAYPAL_API_URL,
+  SERVER_URL,
+  STRIPE_SECRET_KEY,
+} from "../../data/constants";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { randomUUID } from "crypto";
@@ -19,8 +23,8 @@ dayjs.extend(localizedFormat);
 
 const stripe = new stripeAPI(STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
 
-const successUrl = "https://roomyfinder.com/rent-payemt/success.html";
-const cancelUrl = "https://roomyfinder.com/rent-paymet/cancel.html";
+const successUrl = `${SERVER_URL}/rent-payemt/success`;
+const cancelUrl = `${SERVER_URL}/rent-payemt/cancel`;
 
 const axios = Axios.create({
   baseURL: PAYPAL_API_URL,
@@ -189,9 +193,9 @@ bookingRouter.post("/", async (req, res) => {
             });
 
             const messageToClient =
-              `Auto Reject : Dear ${booking.client.firstName} ${booking.client.lastName},` +
+              `Auto Reject : Dear ${client.firstName} ${client.lastName},` +
               ` We are soory to tell you that your booking of ${ad.type} in ${ad.address.city}` +
-              ` ${booking.poster.firstName} ${booking.poster.lastName}` +
+              ` ${landlord.firstName} ${landlord.lastName}` +
               " have been cancel due to unresponsive Landlord.";
 
             FCMHelper.sendNofication("auto-reply", client.fcmToken, {
@@ -229,6 +233,7 @@ bookingRouter.post("/:id/offer", async (req, res) => {
     }).populate([{ path: "poster" }, { path: "client" }]);
 
     if (!booking) return res.sendStatus(404);
+    if (booking.status == "offered") return res.sendStatus(409);
 
     const ad = await PropertyAdModel.findById(booking.ad._id);
     const client = await UserModel.findById(booking.client._id);
@@ -281,6 +286,7 @@ bookingRouter.post("/:id/cancel", async (req, res) => {
       ]);
 
       if (!booking) return res.sendStatus(404);
+      if (booking.status == "declined") return res.sendStatus(409);
 
       if (booking.poster.id != userId && booking.client.id != userId)
         return res.sendStatus(403);
@@ -337,6 +343,7 @@ bookingRouter.post(
       }).populate([{ path: "poster" }, { path: "client" }, { path: "ad" }]);
 
       if (!booking) return res.status(404).json({ code: "booking-not-found" });
+      if (booking.isPayed) return res.sendStatus(409);
 
       let rentFee: number;
       let commissionFee: number;
@@ -407,8 +414,8 @@ bookingRouter.post(
           },
         ],
         mode: "payment",
-        success_url: successUrl,
-        cancel_url: cancelUrl,
+        success_url: successUrl + "?bookingId=" + booking.id,
+        cancel_url: cancelUrl + "?bookingId=" + booking.id,
         metadata: {
           object: "PAY_PROPERTY_RENT",
           bookingId: booking.id,
@@ -435,6 +442,7 @@ bookingRouter.post("/paypal/create-payment-link", async (req, res) => {
     }).populate([{ path: "poster" }, { path: "client" }, { path: "ad" }]);
 
     if (!booking) return res.status(404).json({ code: "booking-not-found" });
+    if (booking.isPayed) return res.sendStatus(409);
 
     let rentFee: number;
     let commissionFee: number;
@@ -522,8 +530,8 @@ bookingRouter.post("/paypal/create-payment-link", async (req, res) => {
       ],
       // TODO : Add the return and cancel urls
       "application_context": {
-        "return_url": successUrl,
-        "cancel_url": cancelUrl,
+        "return_url": successUrl + "?bookingId=" + booking.id,
+        "cancel_url": cancelUrl + "?bookingId=" + booking.id,
       },
     };
 
@@ -563,6 +571,7 @@ bookingRouter.post("/pay-cash", async (req, res) => {
     );
 
     if (!booking) return res.status(404).json({ code: "booking-not-found" });
+    if (booking.isPayed) return res.sendStatus(409);
     return res.sendStatus(200);
   } catch (error) {
     console.log(error);

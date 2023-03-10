@@ -1,9 +1,10 @@
 "use strict";
 // import { WebUser } from "../interfaces/custom_interfaces";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PAYPAL_API_URL = exports.PAYPAL_WEBHOOK_ID = exports.PAYPAL_CLIENT_SECRET = exports.PAYPAL_CLIENT_ID = exports.STRIPE_WEBHOOK_SIGNING_SECRET = exports.STRIPE_SECRET_KEY = exports.MAIL_SMTP_PASSWORD = exports.MAIL_SMTP_USERNAME = exports.MAIL_SMTP_PORT = exports.MAIL_ENDPOINT = exports.MAIL_TOKEN = exports.FIREBASE_PRIVATE_KEY = exports.FIREBASE_PROJECT_ID = exports.DATA_BASE_URL = exports.SECRET_KEY = exports.ADDRESS = exports.PORT = void 0;
+exports.PAYPAL_API_URL = exports.PAYPAL_WEBHOOK_ID = exports.PAYPAL_CLIENT_SECRET = exports.PAYPAL_CLIENT_ID = exports.STRIPE_WEBHOOK_SIGNING_SECRET = exports.STRIPE_SECRET_KEY = exports.MAIL_SMTP_PASSWORD = exports.MAIL_SMTP_USERNAME = exports.MAIL_SMTP_PORT = exports.MAIL_ENDPOINT = exports.MAIL_TOKEN = exports.FIREBASE_PRIVATE_KEY = exports.FIREBASE_PROJECT_ID = exports.DATA_BASE_URL = exports.SECRET_KEY = exports.SERVER_URL = exports.ADDRESS = exports.PORT = void 0;
 exports.PORT = parseInt(process.env.PORT) || 39000;
 exports.ADDRESS = process.env.ADDRESS || "localhost";
+exports.SERVER_URL = process.env.SERVER_URL || "";
 exports.SECRET_KEY = process.env.SECRET_KEY || "SECRET_KEY";
 exports.DATA_BASE_URL = process.env.DATA_BASE_URL;
 // Firebase

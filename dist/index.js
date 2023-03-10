@@ -48,3 +48,10 @@ const listenner = server.listen(constants_1.PORT, constants_1.ADDRESS, function 
     return console.log(`Server running on port ${constants_1.PORT}`);
 });
 process.on("exit", (_) => listenner.close());
+// Public routes
+app.get("/rent-payemt/success", (req, res) => {
+    res.sendFile(process.cwd() + "/public/rent_payment_success.html");
+});
+app.get("/rent-payemt/cancel", (req, res) => {
+    res.sendFile(process.cwd() + "/public/rent_payment_cancel.html");
+});

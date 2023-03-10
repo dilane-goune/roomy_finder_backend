@@ -2,6 +2,7 @@
 
 export const PORT = parseInt(process.env.PORT as string) || 39000;
 export const ADDRESS = (process.env.ADDRESS as string) || "localhost";
+export const SERVER_URL = (process.env.SERVER_URL as string) || "";
 export const SECRET_KEY = process.env.SECRET_KEY || "SECRET_KEY";
 
 export const DATA_BASE_URL = process.env.DATA_BASE_URL as string;
