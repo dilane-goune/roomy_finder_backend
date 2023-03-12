@@ -106,6 +106,16 @@ bookingRouter.post("/", async (req, res) => {
     const ad = await PropertyAdModel.findById(adId);
     if (!ad) return res.status(400).json({ "code": "ad-not-found" });
 
+    const pendingBooking = await PropertyBookingModel.findOne({
+      poster: ad.poster._id,
+      client: userId,
+      ad: adId,
+      status: "pending",
+    });
+
+    if (pendingBooking)
+      return res.status(409).json({ "code": "have-pending-booking" });
+
     const landlord = await UserModel.findById(ad.poster._id);
     const client = await UserModel.findById(userId);
 
@@ -128,7 +138,7 @@ bookingRouter.post("/", async (req, res) => {
       ad: adId,
     });
 
-    res.sendStatus(200);
+    res.json({ bookingId: booking.id });
 
     const message =
       `Congratulations. You got booked for ${ad.type} ${booking.rentType}.\n` +
@@ -272,13 +282,13 @@ bookingRouter.post("/:id/offer", async (req, res) => {
   }
 });
 
-bookingRouter.post("/:id/cancel", async (req, res) => {
+bookingRouter.post("/lanlord/cancel", async (req, res) => {
   try {
-    const userId = (req as any).userId;
+    const userId = (req as CustomRequest).userId;
 
     await runInTransaction(async (session) => {
       const booking = await PropertyBookingModel.findById({
-        _id: req.params.id,
+        _id: req.body.bookingId,
       }).populate([
         { path: "poster" },
         { path: "client", select: "-password -bankInfo" },
@@ -286,44 +296,56 @@ bookingRouter.post("/:id/cancel", async (req, res) => {
       ]);
 
       if (!booking) return res.sendStatus(404);
-      if (booking.status == "declined") return res.sendStatus(409);
+      if (booking.poster.id != userId) return res.sendStatus(403);
+      if (booking.status != "pending")
+        return res.status(400).json({ code: "booking-accepted" });
 
-      if (booking.poster.id != userId && booking.client.id != userId)
-        return res.sendStatus(403);
-      if (booking.status == "offered")
-        return res.status(400).json({ code: "offered" });
-
-      let message: string;
-      if (booking.poster._id.equals(userId)) {
-        message =
-          `Dear ${booking.client.firstName} ${booking.client.lastName},` +
-          " sorry the property you choose is not more available. Please choose another option";
-      } else {
-        message =
-          `Dear ${booking.poster.firstName} ${booking.poster.lastName},` +
-          " a client just cancelled her booking of your property " +
-          `${booking.ad.type} in ${booking.ad.address.city}.`;
-      }
-
-      await PropertyAdModel.updateOne(
-        { _id: booking.ad._id },
-        { $inc: { quantityTaken: booking.quantity } },
-        { session }
-      );
       await booking.deleteOne({ session });
 
-      FCMHelper.sendNofication(
-        booking.poster._id.equals(userId)
-          ? "booking-declined"
-          : "booking-cancelled",
-        booking.poster._id.equals(userId)
-          ? booking.client.fcmToken
-          : booking.poster.fcmToken,
-        {
-          bookingId: req.params.id,
-          message,
-        }
-      );
+      const message =
+        `Dear ${booking.client.firstName} ${booking.client.lastName},` +
+        " sorry the property you choose is not more available. Please choose another option";
+
+      FCMHelper.sendNofication("booking-declined", booking.client.fcmToken, {
+        bookingId: booking.id,
+        message,
+      });
+      res.sendStatus(200);
+    });
+  } catch (error) {
+    res.sendStatus(500);
+    console.error(error);
+  }
+});
+bookingRouter.post("/tenant/cancel", async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+
+    await runInTransaction(async (session) => {
+      const booking = await PropertyBookingModel.findById({
+        _id: req.body.bookingId,
+      }).populate([
+        { path: "poster" },
+        { path: "client", select: "-password -bankInfo" },
+        { path: "ad", populate: "poster" },
+      ]);
+
+      if (!booking) return res.sendStatus(404);
+      if (booking.client.id != userId) return res.sendStatus(403);
+      if (booking.status != "pending")
+        return res.status(400).json({ code: "booking-accepted" });
+
+      await booking.deleteOne({ session });
+
+      const message =
+        `Dear ${booking.poster.firstName} ${booking.poster.lastName},` +
+        " a client just cancelled her booking of your property " +
+        `${booking.ad.type} in ${booking.ad.address.city}.`;
+
+      FCMHelper.sendNofication("booking-cancelled", booking.poster.fcmToken, {
+        bookingId: booking.id + "",
+        message,
+      });
       res.sendStatus(200);
     });
   } catch (error) {
@@ -495,8 +517,9 @@ bookingRouter.post("/paypal/create-payment-link", async (req, res) => {
     const servicFee = (rentFee + commissionFee + tavFee) * 0.03;
 
     //TODO : Remove *0.27 in production and change currency to AED
-    const amount =
-      Math.ceil(rentFee + commissionFee + tavFee + servicFee) * 0.27;
+    const amount = Math.ceil(
+      (rentFee + commissionFee + tavFee + servicFee) * 0.27
+    );
     const currency = "USD";
 
     const paymentData = {
@@ -564,14 +587,14 @@ bookingRouter.post("/paypal/create-payment-link", async (req, res) => {
 bookingRouter.post("/pay-cash", async (req, res) => {
   try {
     const userId = (req as any).userId;
-    const booking = await PropertyBookingModel.findOneAndUpdate(
-      { _id: req.body.bookingId, client: userId },
-      { $set: { isPayed: true } },
-      { new: true }
-    );
+    const booking = await PropertyBookingModel.findOne({
+      _id: req.body.bookingId,
+      client: userId,
+    });
 
     if (!booking) return res.status(404).json({ code: "booking-not-found" });
     if (booking.isPayed) return res.sendStatus(409);
+    await booking.updateOne({ $set: { isPayed: true } });
     return res.sendStatus(200);
   } catch (error) {
     console.log(error);

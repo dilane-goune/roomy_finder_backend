@@ -53,7 +53,7 @@ propertyAdRouter.post("/", async (req, res) => {
 
     if (req.body.deposit) {
       if (!parseFloat(req.body.depositPrice + "")) {
-        delete req.body.depositPrice;
+        delete req.body;
         req.body.deposit = false;
       }
     } else {
@@ -63,8 +63,11 @@ propertyAdRouter.post("/", async (req, res) => {
     const ad = await PropertyAdModel.create({
       ...req.body,
       poster: (req as CustomRequest).userId,
-      isPostPaid: false,
     });
+
+    const ad2 = await PropertyAdModel.findOne({ _id: ad._id });
+
+    console.log(ad2);
 
     res.json(ad);
   } catch (error) {

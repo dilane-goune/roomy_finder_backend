@@ -70,6 +70,19 @@ export interface PropertyBooking {
 
   readonly createdAt: Date;
   extra?: { [key: string]: any };
+  cameraPosition?: {
+    bearing: number;
+    target: number[];
+    tilt: number;
+    zoom: number;
+  };
+  autoCompletePredicate?: {
+    placeId?: string;
+    mainText: string[];
+    secondaryText?: string;
+    description: string;
+    types: string[];
+  };
 }
 export interface PropertyBookingMethods {}
 

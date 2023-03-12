@@ -73,6 +73,19 @@ const bookingSchema = new mongoose_1.Schema({
     paymentService: { type: String, enum: ["STRIPE", "PAYPAL"] },
     transactionId: { type: String },
     extra: { type: mongoose_1.Schema.Types.Map },
+    cameraPosition: {
+        bearing: { type: Number },
+        target: [{ type: Number }],
+        tilt: { type: Number },
+        zoom: { type: Number },
+    },
+    autoCompletePredicate: {
+        placeId: { type: String },
+        mainText: { type: String },
+        secondaryText: { type: String },
+        description: { type: String },
+        types: [{ type: String }],
+    },
 }, {
     collection: "PropertyBookings",
     timestamps: true,

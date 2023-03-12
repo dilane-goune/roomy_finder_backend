@@ -18,7 +18,7 @@ export default payPostPropertyAdRouter;
 payPostPropertyAdRouter.post("pay-post-property-ad", async (req, res) => {
   try {
     const userId = (req as CustomRequest).userId;
-    const user = UserModel.findById(userId);
+    const user = await UserModel.findById(userId);
 
     if (!user) return res.status(404).json({ code: "user-not-found" });
 

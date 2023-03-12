@@ -25,7 +25,7 @@ exports.default = payPostPropertyAdRouter;
 payPostPropertyAdRouter.post("pay-post-property-ad", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.userId;
-        const user = schema_1.default.findById(userId);
+        const user = yield schema_1.default.findById(userId);
         if (!user)
             return res.status(404).json({ code: "user-not-found" });
         const session = yield stripe.checkout.sessions.create({

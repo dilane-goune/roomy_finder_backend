@@ -60,6 +60,19 @@ const schema = new Schema<RoommateAd, Model<RoommateAd>, RoommateAdMethods>(
       wifi: { type: Boolean, required: true },
       tv: { type: Boolean, required: true },
     },
+    cameraPosition: {
+      bearing: { type: Number },
+      target: [{ type: Number }],
+      tilt: { type: Number },
+      zoom: { type: Number },
+    },
+    autoCompletePredicate: {
+      placeId: { type: String },
+      mainText: { type: String },
+      secondaryText: { type: String },
+      description: { type: String },
+      types: [{ type: String }],
+    },
   },
   {
     collection: "RoommateAds",

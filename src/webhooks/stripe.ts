@@ -54,9 +54,13 @@ stripeWebHookHandler.post("/", async (request, response) => {
         if ((session as any).payment_status === "paid") {
           switch ((session as any).metadata.object) {
             case "PAY_PROPERTY_RENT":
-              const resp = await handleStripeRentPaySucceded(session);
+              const resp1 = await handleStripeRentPaySucceded(session);
 
-              return response.status(resp).end();
+              return response.status(resp1).end();
+            case "UPGRADE_TO_PREMIUM":
+              const resp2 = await handleStripePlanUpgrageSucceded(session);
+
+              return response.status(resp2).end();
 
             default:
               break;
@@ -137,6 +141,34 @@ async function handleStripeRentPaySucceded(stripeEvent: any): Promise<number> {
           bookingId: booking.id + "",
         }
       );
+    });
+
+    return 200;
+  } catch (error) {
+    console.log(error);
+    return 500;
+  }
+}
+async function handleStripePlanUpgrageSucceded(
+  stripeEvent: any
+): Promise<number> {
+  try {
+    await runInTransaction(async (session) => {
+      const user = await UserModel.findByIdAndUpdate(
+        stripeEvent.metadata.userId,
+        { $set: { isPremium: true } },
+        { session, new: true }
+      );
+
+      if (!user) return 400;
+
+      const message =
+        `Dear ${user?.firstName} ${user?.lastName},` +
+        ` You have successfully upgraded your plan to premiun.`;
+
+      FCMHelper.sendNofication("plan-upgraded-successfully", user.fcmToken, {
+        message: message,
+      });
     });
 
     return 200;

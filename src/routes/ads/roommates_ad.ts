@@ -120,7 +120,7 @@ roommateAdRouter.post("/available", roommateQueryModifier, async (req, res) => {
       .limit(100)
       .skip(skip)
       .sort({ createdAt: -1 })
-      .populate("poster", "-password -bankInfo");
+      .populate("poster", "-password -accountBalance");
     res.json(data);
   } catch (error) {
     res.sendStatus(500);
@@ -131,8 +131,6 @@ roommateAdRouter.post("/available", roommateQueryModifier, async (req, res) => {
 roommateAdRouter.post("/premium", roommateQueryModifier, async (req, res) => {
   try {
     const skip = parseInt(req.body.skip as string) || 0;
-    console.log(req.body);
-    console.log("premium");
 
     const query = { "isPremium": true };
 

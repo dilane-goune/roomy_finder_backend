@@ -73,8 +73,11 @@ stripeWebHookHandler.post("/", (request, response) => __awaiter(void 0, void 0, 
                 if (session.payment_status === "paid") {
                     switch (session.metadata.object) {
                         case "PAY_PROPERTY_RENT":
-                            const resp = yield handleStripeRentPaySucceded(session);
-                            return response.status(resp).end();
+                            const resp1 = yield handleStripeRentPaySucceded(session);
+                            return response.status(resp1).end();
+                        case "UPGRADE_TO_PREMIUM":
+                            const resp2 = yield handleStripePlanUpgrageSucceded(session);
+                            return response.status(resp2).end();
                         default:
                             break;
                     }
@@ -126,6 +129,27 @@ function handleStripeRentPaySucceded(stripeEvent) {
                 fcm_helper_1.default.sendNofication("pay-property-rent-fee-completed-landlord", (poster === null || poster === void 0 ? void 0 : poster.fcmToken) || booking.poster.fcmToken, {
                     message: landlordMessage,
                     bookingId: booking.id + "",
+                });
+            }));
+            return 200;
+        }
+        catch (error) {
+            console.log(error);
+            return 500;
+        }
+    });
+}
+function handleStripePlanUpgrageSucceded(stripeEvent) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield (0, run_in_transaction_1.default)((session) => __awaiter(this, void 0, void 0, function* () {
+                const user = yield schema_2.default.findByIdAndUpdate(stripeEvent.metadata.userId, { $set: { isPremium: true } }, { session, new: true });
+                if (!user)
+                    return 400;
+                const message = `Dear ${user === null || user === void 0 ? void 0 : user.firstName} ${user === null || user === void 0 ? void 0 : user.lastName},` +
+                    ` You have successfully upgraded your plan to premiun.`;
+                fcm_helper_1.default.sendNofication("plan-upgraded-successfully", user.fcmToken, {
+                    message: message,
                 });
             }));
             return 200;

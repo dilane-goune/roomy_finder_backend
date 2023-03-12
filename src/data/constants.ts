@@ -25,6 +25,8 @@ export const MAIL_SMTP_PASSWORD = process.env.MAIL_SMTP_PASSWORD || "";
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 export const STRIPE_WEBHOOK_SIGNING_SECRET =
   process.env.STRIPE_WEBHOOK_SIGNING_SECRET || "";
+export const STRIPE_UPGRADE_PLAN_PRICE_ID =
+  process.env.STRIPE_UPGRADE_PLAN_PRICE_ID || "";
 
 // Paypal
 export const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID as string;

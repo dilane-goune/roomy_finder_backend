@@ -1,20 +1,12 @@
 import { Router } from "express";
 import FCMHelper from "../../classes/fcm_helper";
-import UserModel from "../../models/user/schema";
 
 const messageRouter = Router();
 export default messageRouter;
 
 messageRouter.post("/", async (req, res) => {
   try {
-    const reciverId = JSON.parse(req.body.reciever)?.id;
-    if (!reciverId) return res.sendStatus(400);
-
-    const reciever = await UserModel.findById(reciverId, {
-      fcmToken: 1,
-      firstName: 1,
-    });
-
+    const reciever = JSON.parse(req.body.reciever);
     if (!reciever) return res.sendStatus(404);
 
     const result = await FCMHelper.sendNofication(

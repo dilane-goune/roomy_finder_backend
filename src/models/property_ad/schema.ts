@@ -90,6 +90,20 @@ const bookingSchema = new Schema<
     paymentService: { type: String, enum: ["STRIPE", "PAYPAL"] },
     transactionId: { type: String },
     extra: { type: Schema.Types.Map },
+
+    cameraPosition: {
+      bearing: { type: Number },
+      target: [{ type: Number }],
+      tilt: { type: Number },
+      zoom: { type: Number },
+    },
+    autoCompletePredicate: {
+      placeId: { type: String },
+      mainText: { type: String },
+      secondaryText: { type: String },
+      description: { type: String },
+      types: [{ type: String }],
+    },
   },
   {
     collection: "PropertyBookings",

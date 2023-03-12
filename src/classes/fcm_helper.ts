@@ -67,4 +67,5 @@ export type NotificationEvent =
   | "pay-out-failed"
   | "pay-property-rent-fee-failed-client"
   | "pay-property-rent-fee-completed-client"
-  | "pay-property-rent-fee-completed-landlord";
+  | "pay-property-rent-fee-completed-landlord"
+  | "plan-upgraded-successfully";

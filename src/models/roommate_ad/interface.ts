@@ -44,6 +44,19 @@ export interface RoommateAd {
     wifi: boolean;
     tv: boolean;
   };
+  cameraPosition: {
+    bearing: { type: Number };
+    target: [{ type: Number }];
+    tilt: { type: Number };
+    zoom: { type: Number };
+  };
+  autoCompletePredicate: {
+    placeId: { type: String };
+    mainText: { type: String };
+    secondaryText: { type: String };
+    description: { type: String };
+    types: [{ type: String }];
+  };
 }
 
 export interface RoommateAdMethods {}
