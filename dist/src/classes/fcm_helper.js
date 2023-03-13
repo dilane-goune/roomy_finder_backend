@@ -59,7 +59,6 @@ class FCMHelper {
                     token: fcmToken,
                     data: Object.assign(Object.assign({}, data), { event }),
                     notification: {
-                        title: "Title",
                         body: data["message"],
                     },
                 });

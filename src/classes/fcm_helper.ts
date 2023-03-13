@@ -38,6 +38,7 @@ export default class FCMHelper {
   static async sendNofication(
     event: NotificationEvent,
     fcmToken: string,
+
     data: { [key: string]: string }
   ) {
     try {
@@ -45,7 +46,6 @@ export default class FCMHelper {
         token: fcmToken,
         data: { ...data, event },
         notification: {
-          title: "Title",
           body: data["message"],
         },
       });
