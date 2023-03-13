@@ -17,6 +17,7 @@ const schema_2 = __importDefault(require("../models/user/schema"));
 const run_in_transaction_1 = __importDefault(require("../functions/run_in_transaction"));
 const axios_1 = __importDefault(require("axios"));
 const fcm_helper_1 = __importDefault(require("../classes/fcm_helper"));
+const emails_1 = __importDefault(require("../functions/emails"));
 function paypalHooksHandler(req, res) {
     const data = req.body;
     const event = data.event_type;
@@ -73,6 +74,11 @@ const handlePaypalPayoutItemSucceeded = (req, res) => __awaiter(void 0, void 0, 
             yield fcm_helper_1.default.sendNofication("pay-out-completed", user.fcmToken, {
                 message,
             });
+            (0, emails_1.default)({
+                recieverEmail: user.email,
+                message,
+                subject: "Roomy Finder Payment",
+            });
         }));
     }
     catch (error) {
@@ -102,6 +108,11 @@ const handlePaypalPayoutFailed = (req, res) => __awaiter(void 0, void 0, void 0,
         yield fcm_helper_1.default.sendNofication("pay-out-failed", user.fcmToken, {
             message,
         });
+        (0, emails_1.default)({
+            recieverEmail: user.email,
+            message,
+            subject: "Roomy Finder Payment",
+        });
     }
     catch (error) {
         console.log(error);
@@ -128,6 +139,11 @@ const handlePaypalPayoutItemFailed = (req, res) => __awaiter(void 0, void 0, voi
         // send notification
         const message = `Your rent payment of ${transc.currency} ${transc.amount} have failed`;
         yield fcm_helper_1.default.sendNofication("pay-property-rent-fee-failed-client", user.fcmToken, { message });
+        (0, emails_1.default)({
+            recieverEmail: user.email,
+            message,
+            subject: "Roomy Finder Payment",
+        });
     }
     catch (error) {
         console.log(error);
@@ -176,6 +192,11 @@ const handlePaypalOrderApproved = (req, res) => __awaiter(void 0, void 0, void 0
                 // send notification
                 const message = `Your rent payment of ${transc.currency} ${transc.amount} have completed`;
                 yield fcm_helper_1.default.sendNofication("pay-property-rent-fee-failed-client", user.fcmToken, { message });
+                (0, emails_1.default)({
+                    recieverEmail: user.email,
+                    message,
+                    subject: "Roomy Finder Payment",
+                });
             }
         }));
     }
@@ -203,6 +224,11 @@ const handlePaypalOrderVoided = (req, res) => __awaiter(void 0, void 0, void 0, 
         // send notification
         const message = `Your rent payment of ${transc.currency} ${transc.amount} have failed`;
         yield fcm_helper_1.default.sendNofication("pay-property-rent-fee-failed-client", user.fcmToken, { message });
+        (0, emails_1.default)({
+            recieverEmail: user.email,
+            message,
+            subject: "Roomy Finder Payment",
+        });
     }
     catch (error) {
         console.log(error);

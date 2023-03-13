@@ -39,6 +39,7 @@ const express_1 = require("express");
 const stripe_1 = __importDefault(require("stripe"));
 const fcm_helper_1 = __importDefault(require("../classes/fcm_helper"));
 const constants_1 = require("../data/constants");
+const emails_1 = __importDefault(require("../functions/emails"));
 const run_in_transaction_1 = __importDefault(require("../functions/run_in_transaction"));
 const schema_1 = __importStar(require("../models/property_ad/schema"));
 const schema_2 = __importDefault(require("../models/user/schema"));
@@ -122,6 +123,11 @@ function handleStripeRentPaySucceded(stripeEvent) {
                     message: clientMessage,
                     bookingId: booking.id + "",
                 });
+                (0, emails_1.default)({
+                    recieverEmail: booking.client.email,
+                    message: clientMessage,
+                    subject: "Roomy Finder Payment",
+                });
                 const landlordMessage = `Dear ${poster === null || poster === void 0 ? void 0 : poster.firstName} ${poster === null || poster === void 0 ? void 0 : poster.lastName},` +
                     " we are happy to tell you that a tenant have completed the payment of your property, " +
                     ` ${ad === null || ad === void 0 ? void 0 : ad.type} located ${ad === null || ad === void 0 ? void 0 : ad.address.city}.` +
@@ -129,6 +135,11 @@ function handleStripeRentPaySucceded(stripeEvent) {
                 fcm_helper_1.default.sendNofication("pay-property-rent-fee-completed-landlord", (poster === null || poster === void 0 ? void 0 : poster.fcmToken) || booking.poster.fcmToken, {
                     message: landlordMessage,
                     bookingId: booking.id + "",
+                });
+                (0, emails_1.default)({
+                    recieverEmail: booking.poster.email,
+                    message: landlordMessage,
+                    subject: "Roomy Finder Payment",
                 });
             }));
             return 200;
@@ -150,6 +161,11 @@ function handleStripePlanUpgrageSucceded(stripeEvent) {
                     ` You have successfully upgraded your plan to premiun.`;
                 fcm_helper_1.default.sendNofication("plan-upgraded-successfully", user.fcmToken, {
                     message: message,
+                });
+                (0, emails_1.default)({
+                    recieverEmail: user.email,
+                    message,
+                    subject: "Roomy Finder Payment",
                 });
             }));
             return 200;

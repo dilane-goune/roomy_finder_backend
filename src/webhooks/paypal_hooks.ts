@@ -10,6 +10,7 @@ import {
 import runInTransaction from "../functions/run_in_transaction";
 import axios from "axios";
 import FCMHelper from "../classes/fcm_helper";
+import sendEmail from "../functions/emails";
 
 export default function paypalHooksHandler(req: Request, res: Response) {
   const data = req.body as IPaypalWebHook;
@@ -87,6 +88,11 @@ const handlePaypalPayoutItemSucceeded = async (req: Request, res: Response) => {
       await FCMHelper.sendNofication("pay-out-completed", user.fcmToken, {
         message,
       });
+      sendEmail({
+        recieverEmail: user.email,
+        message,
+        subject: "Roomy Finder Payment",
+      });
     });
   } catch (error) {
     console.log(error);
@@ -120,6 +126,11 @@ const handlePaypalPayoutFailed = async (req: Request, res: Response) => {
     const message = `Your payout of ${transc.currency} ${transc.amount} have failed`;
     await FCMHelper.sendNofication("pay-out-failed", user.fcmToken, {
       message,
+    });
+    sendEmail({
+      recieverEmail: user.email,
+      message,
+      subject: "Roomy Finder Payment",
     });
   } catch (error) {
     console.log(error);
@@ -156,6 +167,11 @@ const handlePaypalPayoutItemFailed = async (req: Request, res: Response) => {
       user.fcmToken,
       { message }
     );
+    sendEmail({
+      recieverEmail: user.email,
+      message,
+      subject: "Roomy Finder Payment",
+    });
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
@@ -222,6 +238,11 @@ const handlePaypalOrderApproved = async (req: Request, res: Response) => {
           user.fcmToken,
           { message }
         );
+        sendEmail({
+          recieverEmail: user.email,
+          message,
+          subject: "Roomy Finder Payment",
+        });
       }
     });
   } catch (error) {
@@ -257,6 +278,11 @@ const handlePaypalOrderVoided = async (req: Request, res: Response) => {
       user.fcmToken,
       { message }
     );
+    sendEmail({
+      recieverEmail: user.email,
+      message,
+      subject: "Roomy Finder Payment",
+    });
   } catch (error) {
     console.log(error);
     res.sendStatus(500);

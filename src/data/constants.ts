@@ -13,6 +13,9 @@ export const FIREBASE_PRIVATE_KEY = (
   process.env.FIREBASE_PRIVATE_KEY as string
 ).replace(/\\n/g, "\n");
 
+// Mailing SendGrid
+export const SEND_GRID_API_KEY =
+  process.env.SEND_GRID_API_KEY || "SEND_GRID_API_KEY";
 // Mailing
 export const MAIL_TOKEN = process.env.MAIL_TOKEN || "MAIL_TOKEN";
 export const MAIL_ENDPOINT = process.env.MAIL_ENDPOINT || "ENDPOINT";

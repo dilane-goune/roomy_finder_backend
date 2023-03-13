@@ -48,6 +48,7 @@ const localizedFormat_1 = __importDefault(require("dayjs/plugin/localizedFormat"
 const crypto_1 = require("crypto");
 const axios_1 = __importDefault(require("axios"));
 const generate_token_1 = require("../../functions/generate_token");
+const emails_1 = __importDefault(require("../../functions/emails"));
 dayjs_1.default.extend(localizedFormat_1.default);
 const stripe = new stripe_1.default(constants_1.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
 const successUrl = `${constants_1.SERVER_URL}/rent-payemt/success`;
@@ -141,6 +142,11 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
             "bookingId": booking.id.toString(),
             message,
         });
+        (0, emails_1.default)({
+            recieverEmail: landlord.email,
+            message,
+            subject: "Roomy Finder Booking",
+        });
         const fiftheenMinutes = 1000 * 60 * 15;
         const reminderInterval = setInterval((booking, landlord, client) => __awaiter(void 0, void 0, void 0, function* () {
             try {
@@ -180,12 +186,22 @@ bookingRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
                     fcm_helper_1.default.sendNofication("auto-reply", landlord.fcmToken, {
                         message: messageToPoster,
                     });
+                    (0, emails_1.default)({
+                        recieverEmail: landlord.email,
+                        message: messageToPoster,
+                        subject: "Roomy Finder Booking",
+                    });
                     const messageToClient = `Auto Reject : Dear ${client.firstName} ${client.lastName},` +
                         ` We are soory to tell you that your booking of ${ad.type} in ${ad.address.city}` +
                         ` ${landlord.firstName} ${landlord.lastName}` +
                         " have been cancel due to unresponsive Landlord.";
                     fcm_helper_1.default.sendNofication("auto-reply", client.fcmToken, {
                         message: messageToClient,
+                    });
+                    (0, emails_1.default)({
+                        recieverEmail: landlord.email,
+                        message: messageToClient,
+                        subject: "Roomy Finder Booking",
                     });
                     yield (bc === null || bc === void 0 ? void 0 : bc.deleteOne());
                 }
@@ -234,6 +250,11 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
             message: clientMessage,
             "bookingId": booking.id.toString(),
         });
+        (0, emails_1.default)({
+            recieverEmail: booking.client.email,
+            message: clientMessage,
+            subject: "Roomy Finder Booking",
+        });
     }
     catch (error) {
         res.sendStatus(500);
@@ -263,6 +284,11 @@ bookingRouter.post("/lanlord/cancel", (req, res) => __awaiter(void 0, void 0, vo
             fcm_helper_1.default.sendNofication("booking-declined", booking.client.fcmToken, {
                 bookingId: booking.id,
                 message,
+            });
+            (0, emails_1.default)({
+                recieverEmail: booking.client.email,
+                message,
+                subject: "Roomy Finder Booking",
             });
             res.sendStatus(200);
         }));
@@ -296,6 +322,11 @@ bookingRouter.post("/tenant/cancel", (req, res) => __awaiter(void 0, void 0, voi
             fcm_helper_1.default.sendNofication("booking-cancelled", booking.poster.fcmToken, {
                 bookingId: booking.id + "",
                 message,
+            });
+            (0, emails_1.default)({
+                recieverEmail: booking.poster.email,
+                message,
+                subject: "Roomy Finder Booking",
             });
             res.sendStatus(200);
         }));

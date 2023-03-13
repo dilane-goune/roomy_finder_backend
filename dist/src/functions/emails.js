@@ -8,29 +8,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const mailtrap_1 = require("mailtrap");
 const constants_1 = require("../data/constants");
+const mail_1 = __importDefault(require("@sendgrid/mail"));
+mail_1.default.setApiKey(constants_1.SEND_GRID_API_KEY);
 function sendEmail({ subject, recieverEmail, message, }) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const client = new mailtrap_1.MailtrapClient({
-                endpoint: constants_1.MAIL_ENDPOINT,
-                token: constants_1.MAIL_TOKEN,
-            });
-            const sender = {
-                email: "mailtrap@gouneanlab.com",
-                name: "Gounean Lab",
-            };
-            const recipients = [{ email: recieverEmail }];
-            const response = yield client.send({
-                from: sender,
-                to: recipients,
+            const response = yield mail_1.default.send({
+                to: recieverEmail,
+                from: "it@gsccapitalgroup.com",
                 subject: subject,
                 text: message,
-                category: "Integration Test",
             });
-            console.log("Message sent: %s", response.success);
+            console.log("Message sent: %s", response);
         }
         catch (error) {
             console.log(error);

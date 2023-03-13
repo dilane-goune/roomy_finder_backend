@@ -129,6 +129,7 @@ authRouter.post("/reset-password", (req, res) => __awaiter(void 0, void 0, void 
         res.sendStatus(200);
     }
     catch (error) {
+        console.log(error);
         res.sendStatus(500);
     }
 }));

@@ -1,5 +1,7 @@
-import { MailtrapClient } from "mailtrap";
-import { MAIL_ENDPOINT, MAIL_TOKEN } from "../data/constants";
+import { SEND_GRID_API_KEY } from "../data/constants";
+import sendGrid from "@sendgrid/mail";
+
+sendGrid.setApiKey(SEND_GRID_API_KEY);
 
 export default async function sendEmail({
   subject,
@@ -11,26 +13,14 @@ export default async function sendEmail({
   message: string;
 }) {
   try {
-    const client = new MailtrapClient({
-      endpoint: MAIL_ENDPOINT,
-      token: MAIL_TOKEN,
-    });
-
-    const sender = {
-      email: "mailtrap@gouneanlab.com",
-      name: "Gounean Lab",
-    };
-    const recipients = [{ email: recieverEmail }];
-
-    const response = await client.send({
-      from: sender,
-      to: recipients,
+    const response = await sendGrid.send({
+      to: recieverEmail,
+      from: "it@gsccapitalgroup.com",
       subject: subject,
       text: message,
-      category: "Integration Test",
     });
 
-    console.log("Message sent: %s", response.success);
+    console.log("Message sent: %s", response);
   } catch (error) {
     console.log(error);
     console.log("Failed to send email");

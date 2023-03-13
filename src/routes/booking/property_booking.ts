@@ -18,6 +18,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import { randomUUID } from "crypto";
 import Axios, { AxiosError } from "axios";
 import { generatePaypalToken } from "../../functions/generate_token";
+import sendEmail from "../../functions/emails";
 
 dayjs.extend(localizedFormat);
 
@@ -150,6 +151,12 @@ bookingRouter.post("/", async (req, res) => {
       message,
     });
 
+    sendEmail({
+      recieverEmail: landlord.email,
+      message,
+      subject: "Roomy Finder Booking",
+    });
+
     const fiftheenMinutes = 1000 * 60 * 15;
 
     const reminderInterval = setInterval(
@@ -201,6 +208,11 @@ bookingRouter.post("/", async (req, res) => {
             FCMHelper.sendNofication("auto-reply", landlord.fcmToken, {
               message: messageToPoster,
             });
+            sendEmail({
+              recieverEmail: landlord.email,
+              message: messageToPoster,
+              subject: "Roomy Finder Booking",
+            });
 
             const messageToClient =
               `Auto Reject : Dear ${client.firstName} ${client.lastName},` +
@@ -210,6 +222,11 @@ bookingRouter.post("/", async (req, res) => {
 
             FCMHelper.sendNofication("auto-reply", client.fcmToken, {
               message: messageToClient,
+            });
+            sendEmail({
+              recieverEmail: landlord.email,
+              message: messageToClient,
+              subject: "Roomy Finder Booking",
             });
 
             await bc?.deleteOne();
@@ -276,6 +293,11 @@ bookingRouter.post("/:id/offer", async (req, res) => {
         "bookingId": booking.id.toString(),
       }
     );
+    sendEmail({
+      recieverEmail: booking.client.email,
+      message: clientMessage,
+      subject: "Roomy Finder Booking",
+    });
   } catch (error) {
     res.sendStatus(500);
     console.error(error);
@@ -309,6 +331,12 @@ bookingRouter.post("/lanlord/cancel", async (req, res) => {
       FCMHelper.sendNofication("booking-declined", booking.client.fcmToken, {
         bookingId: booking.id,
         message,
+      });
+
+      sendEmail({
+        recieverEmail: booking.client.email,
+        message,
+        subject: "Roomy Finder Booking",
       });
       res.sendStatus(200);
     });
@@ -346,6 +374,13 @@ bookingRouter.post("/tenant/cancel", async (req, res) => {
         bookingId: booking.id + "",
         message,
       });
+
+      sendEmail({
+        recieverEmail: booking.poster.email,
+        message,
+        subject: "Roomy Finder Booking",
+      });
+
       res.sendStatus(200);
     });
   } catch (error) {

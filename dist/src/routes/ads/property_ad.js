@@ -58,15 +58,18 @@ propertyAdRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, funct
         const user = yield schema_2.default.findById(userId);
         if (!user)
             return res.status(404).json({ code: "user-not-found" });
-        if (req.body.deposit) {
-            if (!parseFloat(req.body.depositPrice + "")) {
-                delete req.body;
-                req.body.deposit = false;
+        try {
+            if (req.body.deposit) {
+                if (!parseFloat(req.body.depositPrice + "")) {
+                    delete req.body;
+                    req.body.deposit = false;
+                }
+            }
+            else {
+                delete req.body.depositPrice;
             }
         }
-        else {
-            delete req.body.depositPrice;
-        }
+        catch (_) { }
         const ad = yield schema_1.default.create(Object.assign(Object.assign({}, req.body), { poster: req.userId }));
         const ad2 = yield schema_1.default.findOne({ _id: ad._id });
         console.log(ad2);

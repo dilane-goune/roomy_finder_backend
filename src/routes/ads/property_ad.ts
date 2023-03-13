@@ -51,15 +51,16 @@ propertyAdRouter.post("/", async (req, res) => {
 
     if (!user) return res.status(404).json({ code: "user-not-found" });
 
-    if (req.body.deposit) {
-      if (!parseFloat(req.body.depositPrice + "")) {
-        delete req.body;
-        req.body.deposit = false;
+    try {
+      if (req.body.deposit) {
+        if (!parseFloat(req.body.depositPrice + "")) {
+          delete req.body;
+          req.body.deposit = false;
+        }
+      } else {
+        delete req.body.depositPrice;
       }
-    } else {
-      delete req.body.depositPrice;
-    }
-
+    } catch (_) {}
     const ad = await PropertyAdModel.create({
       ...req.body,
       poster: (req as CustomRequest).userId,

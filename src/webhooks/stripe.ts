@@ -5,6 +5,7 @@ import {
   STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SIGNING_SECRET,
 } from "../data/constants";
+import sendEmail from "../functions/emails";
 import runInTransaction from "../functions/run_in_transaction";
 import PropertyAdModel, {
   PropertyBookingModel,
@@ -125,6 +126,12 @@ async function handleStripeRentPaySucceded(stripeEvent: any): Promise<number> {
         }
       );
 
+      sendEmail({
+        recieverEmail: booking.client.email,
+        message: clientMessage,
+        subject: "Roomy Finder Payment",
+      });
+
       const landlordMessage =
         `Dear ${poster?.firstName} ${poster?.lastName},` +
         " we are happy to tell you that a tenant have completed the payment of your property, " +
@@ -141,6 +148,11 @@ async function handleStripeRentPaySucceded(stripeEvent: any): Promise<number> {
           bookingId: booking.id + "",
         }
       );
+      sendEmail({
+        recieverEmail: booking.poster.email,
+        message: landlordMessage,
+        subject: "Roomy Finder Payment",
+      });
     });
 
     return 200;
@@ -168,6 +180,11 @@ async function handleStripePlanUpgrageSucceded(
 
       FCMHelper.sendNofication("plan-upgraded-successfully", user.fcmToken, {
         message: message,
+      });
+      sendEmail({
+        recieverEmail: user.email,
+        message,
+        subject: "Roomy Finder Payment",
       });
     });
 
