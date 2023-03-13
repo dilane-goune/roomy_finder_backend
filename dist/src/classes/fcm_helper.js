@@ -58,6 +58,10 @@ class FCMHelper {
                 yield firebase_1.defaultMessaging.send({
                     token: fcmToken,
                     data: Object.assign(Object.assign({}, data), { event }),
+                    notification: {
+                        title: "Title",
+                        body: data["message"],
+                    },
                 });
                 // console.log("Successfully sent message for event : " + event, response);
                 return true;

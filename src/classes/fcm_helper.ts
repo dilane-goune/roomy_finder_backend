@@ -44,6 +44,10 @@ export default class FCMHelper {
       await defaultMessaging.send({
         token: fcmToken,
         data: { ...data, event },
+        notification: {
+          title: "Title",
+          body: data["message"],
+        },
       });
       // console.log("Successfully sent message for event : " + event, response);
       return true;
