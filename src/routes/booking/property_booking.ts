@@ -304,7 +304,7 @@ bookingRouter.post("/:id/offer", async (req, res) => {
   }
 });
 
-bookingRouter.post("/lanlord/cancel", async (req, res) => {
+bookingRouter.post("/landlord/cancel", async (req, res) => {
   try {
     const userId = (req as CustomRequest).userId;
 

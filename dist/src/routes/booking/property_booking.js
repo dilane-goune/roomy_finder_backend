@@ -261,7 +261,7 @@ bookingRouter.post("/:id/offer", (req, res) => __awaiter(void 0, void 0, void 0,
         console.error(error);
     }
 }));
-bookingRouter.post("/lanlord/cancel", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+bookingRouter.post("/landlord/cancel", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.userId;
         yield (0, run_in_transaction_1.default)((session) => __awaiter(void 0, void 0, void 0, function* () {

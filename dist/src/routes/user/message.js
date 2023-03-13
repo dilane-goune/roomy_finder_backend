@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const fcm_helper_1 = __importDefault(require("../../classes/fcm_helper"));
+const schema_1 = __importDefault(require("../../models/user/schema"));
 const messageRouter = (0, express_1.Router)();
 exports.default = messageRouter;
 messageRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -21,7 +22,12 @@ messageRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function
         const reciever = JSON.parse(req.body.reciever);
         if (!reciever)
             return res.sendStatus(404);
-        const result = yield fcm_helper_1.default.sendNofication("new-message", reciever.fcmToken, {
+        const recieverObject = yield schema_1.default.findById(reciever.id, {
+            fcmToken: 1,
+        });
+        if (!recieverObject)
+            return res.sendStatus(404);
+        const result = yield fcm_helper_1.default.sendNofication("new-message", recieverObject.fcmToken, {
             message: req.body.message,
             reciever: req.body.reciever,
             sender: req.body.sender,
