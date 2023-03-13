@@ -7,6 +7,7 @@ export default messageRouter;
 messageRouter.post("/", async (req, res) => {
   try {
     const reciever = JSON.parse(req.body.reciever);
+    const message = JSON.parse(req.body.message);
     if (!reciever) return res.sendStatus(404);
 
     const result = await FCMHelper.sendNofication(
@@ -16,6 +17,7 @@ messageRouter.post("/", async (req, res) => {
         message: req.body.message,
         reciever: req.body.reciever,
         sender: req.body.sender,
+        body: message.text + "",
       }
     );
 

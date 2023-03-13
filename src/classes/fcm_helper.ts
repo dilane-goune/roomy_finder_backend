@@ -46,7 +46,7 @@ export default class FCMHelper {
         token: fcmToken,
         data: { ...data, event },
         notification: {
-          body: data["message"],
+          body: data["body"] || data["message"],
         },
       });
       // console.log("Successfully sent message for event : " + event, response);

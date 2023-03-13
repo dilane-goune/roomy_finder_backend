@@ -59,7 +59,7 @@ class FCMHelper {
                     token: fcmToken,
                     data: Object.assign(Object.assign({}, data), { event }),
                     notification: {
-                        body: data["message"],
+                        body: data["body"] || data["message"],
                     },
                 });
                 // console.log("Successfully sent message for event : " + event, response);

@@ -19,12 +19,14 @@ exports.default = messageRouter;
 messageRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const reciever = JSON.parse(req.body.reciever);
+        const message = JSON.parse(req.body.message);
         if (!reciever)
             return res.sendStatus(404);
         const result = yield fcm_helper_1.default.sendNofication("new-message", reciever.fcmToken, {
             message: req.body.message,
             reciever: req.body.reciever,
             sender: req.body.sender,
+            body: message.text + "",
         });
         if (result)
             res.sendStatus(200);
